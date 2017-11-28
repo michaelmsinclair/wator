@@ -364,6 +364,6 @@ if len(sys.argv) == 6:
 elif len(sys.argv) == 5:
     wator(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]))
 elif len(sys.argv) == 1:
-    wator(100, 100, 20, 9980)
+    wator(100, 100, 20, 8000)
 else:
     print("Syntax: wator.py x y sharks fishes [display(default 'y')]")
