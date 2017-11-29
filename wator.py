@@ -13,6 +13,7 @@ All X: {0, 1, ..., maxX}
 All Y: {0, 1, ..., maxY}
 """
 
+import argparse
 import numpy
 import pygame
 import random 
@@ -325,16 +326,16 @@ def wator(x,y,s,f,d='y'):
         noCell = True
         while noCell:
             xS = random.randint(0,x-1)
-            yS = random.randint(0,x-1)
+            yS = random.randint(0,y-1)
             if aSea.addCreature(xS,yS, Shark):
                 noCell = False
 
     for fish in range(f):
         noCell = True
         while noCell:
-            xS = random.randint(0,x-1)
-            yS = random.randint(0,x-1)
-            if aSea.addCreature(xS,yS, Fish):
+            xF = random.randint(0,x-1)
+            yF = random.randint(0,y-1)
+            if aSea.addCreature(xF,yF, Fish):
                 noCell = False
 
     if d == 'y':
@@ -354,16 +355,32 @@ def wator(x,y,s,f,d='y'):
             c.turn()
         aSea.cleanCreatures()
         elapsedTurn = time.clock() - before
-        print("Tick: %d ElapsedDisp: %2.4f ElapsedTurn: %2.4f %s" % (tick,elapsedDisp,elapsedTurn,aSea) )
-#        if elapsed < 0.1:
-#            time.sleep(0.1-elapsed)
-#            
-
-if len(sys.argv) == 6:
-    wator(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), sys.argv[5])
-elif len(sys.argv) == 5:
-    wator(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]))
-elif len(sys.argv) == 1:
-    wator(100, 100, 20, 8000)
+        print("Tick: %d ElapsedDisp: %2.4f ElapsedTurn: %2.4f %s"
+              % (tick,elapsedDisp,elapsedTurn,aSea) )
+            
+parser = argparse.ArgumentParser()
+parser.add_argument("-f", "--fishes", type=int,
+                    help="initial number of fishes",
+                    default=0)
+parser.add_argument("-s", "--sharks", type=int,
+                    help="initial number of sharks",
+                    default=0)
+parser.add_argument("-x", type=int,
+                    help="number of horizontal cells",
+                    default=200)
+parser.add_argument("-y", type=int,
+                    help="number of vertical cells",
+                    default=200)
+args = parser.parse_args()
+total_cells = args.x * args.y
+if args.sharks == 0:
+    sharks = int(total_cells/10)
 else:
-    print("Syntax: wator.py x y sharks fishes [display(default 'y')]")
+    sharks = args.sharks
+    
+if args.fishes == 0:
+    fishes = int(total_cells/4)
+else:
+    fishes = args.fishes 
+    
+wator(args.x, args.y, sharks, fishes)
