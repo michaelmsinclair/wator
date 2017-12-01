@@ -203,7 +203,7 @@ class Sea(object):
         fishes = self.getFishes()
         positions = self.maxX * self.maxY 
         empty = positions - sharks - fishes
-        return "maxX: %d maxY: %d Positions: %d Sharks: %d Fishes: %d Empty: %d" % (self.maxX, self.maxY, positions, sharks, fishes, empty)
+        return "Sharks: %d Fishes: %d Empty: %d" % (sharks, fishes, empty)
                     
 
 class Creature(object):
@@ -357,6 +357,10 @@ def wator(x,y,s,f,traditional,chronons):
             if aSea.addCreature(xF,yF,Fish,traditional):
                 noCell = False
 
+    # print first message
+    print("BEGIN -:- maxX: %d maxY: %d Positions: %d" % (aSea.getMaxX(), aSea.getMaxY(), aSea.getMaxX() * aSea.getMaxY()))
+
+    startTime = time.clock()
     tick = 0
     while tick < chronons and aSea.getSharks() != 0 and aSea.getFishes() != 0:  # in range(200):
         before = time.clock()
@@ -371,9 +375,12 @@ def wator(x,y,s,f,traditional,chronons):
         tick += 1
         print("Chronon: %06d Turn: %3.4f Display: %3.4f %s"
               % (tick,elapsedTurn,elapsedDisp,aSea) )
-        
+    endTime = time.clock()
+
     # print final message
-    print("Simulation complete after %d chronons." % tick)
+    hours, remainingSeconds = divmod(endTime-startTime, 3600)
+    minutes, seconds = divmod(remainingSeconds, 60)
+    print("END -:- Simulation complete after %d chronons. Ran for %d:%02d:%02d" % (tick, hours, minutes, seconds))
 
 
 # Parse options, then call wator()            
@@ -418,4 +425,5 @@ if args.System:
 else:
     random.seed(42)
     
-wator(args.x, args.y, sharks, fishes, traditional=args.traditional, chronons=args.chronons)
+wator(args.x, args.y, sharks, fishes, args.traditional, args.chronons)
+#        return "maxX: %d maxY: %d Positions: %d Sharks: %d Fishes: %d Empty: %d" % (self.maxX, self.maxY, positions, sharks, fishes, empty)
