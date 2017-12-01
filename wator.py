@@ -17,8 +17,6 @@ import argparse
 import numpy
 import pygame
 import random 
-random = random.SystemRandom()
-import sys
 import time
 
 class SeaPosition(object):
@@ -364,7 +362,8 @@ def wator(x,y,s,f,traditional=False):
         elapsedTurn = time.clock() - before
         print("Tick: %d ElapsedDisp: %2.4f ElapsedTurn: %2.4f %s"
               % (tick,elapsedDisp,elapsedTurn,aSea) )
-            
+
+# Parse options, then call wator()            
 parser = argparse.ArgumentParser()
 parser.add_argument("-f", "--fishes", type=int,
                     help="initial number of fishes",
@@ -376,12 +375,15 @@ parser.add_argument("-t", "--traditional", action="store_true",
                     help="traditional search pattern",
                     default=False)
 parser.add_argument("-x", type=int,
-                    help="number of horizontal cells",
+                    help="number of horizontal cells, default 200",
                     default=200)
 parser.add_argument("-y", type=int,
-                    help="number of vertical cells",
+                    help="number of vertical cells, default 200",
                     default=200)
-
+parser.add_argument("-S", "--System", action="store_true",
+                    help="use SystemRandom, upredictable start, default False",
+                    default=False)
+    
 args = parser.parse_args()
 total_cells = args.x * args.y
 if args.sharks == 0:
@@ -393,5 +395,10 @@ if args.fishes == 0:
     fishes = int(total_cells/4)
 else:
     fishes = args.fishes 
+
+if args.System:
+    random = random.SystemRandom()
+else:
+    random.seed(42)
     
 wator(args.x, args.y, sharks, fishes, traditional=args.traditional)
