@@ -318,17 +318,26 @@ class Fish(Creature):
     def __str__(self):
         return "%s %s Alive: %s  Age: %d" % ('Fish', Creature.__str__(self), str(self.alive), self.age)
     
-def wator(x,y,s,f,traditional=False):
+def wator(x,y,s,f,traditional,chronons):
     '''
-    x =  width of sea, y the height
-    s = number of sharks, f the number of fishes
-    d = y, display screen. if anything else, then give text output only.
-    t = traditional
+    x =  width of the sea, y the height of the sea - longitude and latitude
+    s = number of sharks, f the number of fishes - all creaturs (so far)
+    traditional = traditional creature movement - n,e,s,w.
+        default is new - n, ne, e, se, s, sw, w, ne.
+    chronons = maximum number of chronons to run.
     '''
     
+    # the number of sharks and fishes cannot be greater than the
+    # size of the sea
     if (s+f) > x*y:
         print('Too many creatures')
         exit(2)
+    # check the number of chronons to run.
+    # 999,999 is over 11 hours at 24fps, and most likely far beyond 
+    # the storage space.
+    if chronons < 1 or args.chronons > 999999:
+        print("Chronons must be in range 1 - 999999")
+        quit(3)
     
     aSea = Sea(x,y)
     
@@ -349,22 +358,29 @@ def wator(x,y,s,f,traditional=False):
                 noCell = False
 
     tick = 0
-    while aSea.getSharks() != 0 and aSea.getFishes() != 0:  # in range(200):
+    while tick < chronons and aSea.getSharks() != 0 and aSea.getFishes() != 0:  # in range(200):
         before = time.clock()
-        aSea.display()
-        elapsedDisp = time.clock() - before
-        tick += 1
         theCreatures = aSea.creatures.copy()
-        before = time.clock()
         for c in theCreatures.values():
             c.turn()
         aSea.cleanCreatures()
         elapsedTurn = time.clock() - before
-        print("Tick: %d ElapsedDisp: %2.4f ElapsedTurn: %2.4f %s"
-              % (tick,elapsedDisp,elapsedTurn,aSea) )
+        before = time.clock()
+        aSea.display()
+        elapsedDisp = time.clock() - before
+        tick += 1
+        print("Chronon: %06d Turn: %3.4f Display: %3.4f %s"
+              % (tick,elapsedTurn,elapsedDisp,aSea) )
+        
+    # print final message
+    print("Simulation complete after %d chronons." % tick)
+
 
 # Parse options, then call wator()            
 parser = argparse.ArgumentParser()
+parser.add_argument("-c", "--chronons", type=int,
+                    help="maximum number of chronons to calculate, default 999999",
+                    default=999999)
 parser.add_argument("-f", "--fishes", type=int,
                     help="initial number of fishes",
                     default=0)
@@ -383,22 +399,23 @@ parser.add_argument("-x", type=int,
 parser.add_argument("-y", type=int,
                     help="number of vertical cells, default 200",
                     default=200)
-    
+# get the arguments    
 args = parser.parse_args()
+# calculate the size of the sea
 total_cells = args.x * args.y
+
 if args.sharks == 0:
     sharks = int(total_cells/10)
 else:
     sharks = args.sharks
-    
 if args.fishes == 0:
     fishes = int(total_cells/4)
 else:
     fishes = args.fishes 
-
+# determine RNG
 if args.System:
     random = random.SystemRandom()
 else:
     random.seed(42)
     
-wator(args.x, args.y, sharks, fishes, traditional=args.traditional)
+wator(args.x, args.y, sharks, fishes, traditional=args.traditional, chronons=args.chronons)
