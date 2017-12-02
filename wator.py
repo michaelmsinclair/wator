@@ -16,7 +16,7 @@ All Y: {0, 1, ..., maxY}
 import argparse
 import numpy
 import pygame
-import random 
+import random
 import time
 
 class SeaPosition(object):
@@ -27,27 +27,27 @@ class SeaPosition(object):
         self.x = x
         self.y = y
         self.sea = sea
-        
+
     def getX(self):
         return self.x
-        
+
     def getY(self):
         return self.y
-    
+
     def getSeaPosition(self):
         return(self.x, self.y)
-    
+
     def getAdjacent(self, traditional):
         """
-        returns two arrays of tuples for the positions adjacent to the position. 
-        the first contains location tuples for empty cells, while the second 
+        returns two arrays of tuples for the positions adjacent to the position.
+        the first contains location tuples for empty cells, while the second
         contains cells with a creature in it.
         the cells can either be those in the n, e, s, w postion, or all eight
         surrounding cells - n, ne, e, se, s, sw, w, ne.
         traditional:
                     (0,+1)
             (-1, 0)  Pos.  (+1, 0)
-                    (0,-1) 
+                    (0,-1)
         new:
             (-1,+1) (0,+1) (+1,+1)
             (-1, 0)  Pos.  (+1, 0)
@@ -69,7 +69,7 @@ class SeaPosition(object):
             else:
                 occupied.append((newX, newY))
         return(empty,occupied)
-    
+
     def __str__(self):
         return "(%d, %d)" % (self.x, self.y)
 
@@ -94,10 +94,10 @@ class Sea(object):
 
     def getMaxX(self):
         return self.maxX
-        
+
     def getMaxY(self):
         return self.maxY
-        
+
     def isCellEmpty(self, x, y):
         try:
             if self.sea[x][y] == None:
@@ -108,7 +108,7 @@ class Sea(object):
                 return True
         except IndexError:
             return False
-    
+
     def setCell(self, x, y, c):
         '''
         Put creature c in cell (x,y) of the sea, if the cell is empty
@@ -120,16 +120,15 @@ class Sea(object):
                 self.sea[x][y] = c
                 result = True
         except IndexError:
-            pass 
+            pass
         return result
 
-    
     def getCell(self, x, y):
         try:
             return self.sea[x][y]
         except IndexError:
             return None
-    
+
     def emptyCell(self, x, y):
         if type(self.sea[x][y]) is Shark:
             self.sharks -= 1
@@ -137,23 +136,23 @@ class Sea(object):
             self.fishes -= 1
 
         self.sea[x][y] = None
-        
+
     def getSea(self):
         return self.sea
-    
+
     def getSharks(self):
         return self.sharks
-    
+
     def getFishes(self):
         return self.fishes
-        
-    def addCreature(self, x, y, newCreature, t):
+
+    def addCreature(self, x, y, newCreature, t, spawn, starve=99):
         '''
         If creature can be added to sea, add it to the list of creatures
         '''
         if self.isCellEmpty(x, y):
             pos = SeaPosition(x,y,self)
-            creature = newCreature(self, pos, t)
+            creature = newCreature(self, pos, t, spawn, starve)
             self.setCell(x,y, creature)
             self.creatures[self.creatureTag] = creature
             self.creatureTag += 1
@@ -164,10 +163,10 @@ class Sea(object):
             return True
         else:
             return False
-    
+
     def getCreature(self, tag):
         return self.creatures[tag]
-    
+
     def cleanCreatures(self):
         self.sharks = 0
         self.fishes = 0
@@ -181,7 +180,7 @@ class Sea(object):
                     self.fishes += 1
 
         self.creatures = aliveCreatures
-        
+
     def display(self):
         screenArray = numpy.zeros((self.maxX,self.maxY))
         for y in range(self.maxY-1,-1,-1):
@@ -197,17 +196,17 @@ class Sea(object):
         pygame.display.flip()
         pygame.image.save(self.screen, ("images/wator_%06d.png" % self.filenumber))
         self.filenumber += 1
-        
+
     def __str__(self):
         sharks = self.getSharks()
         fishes = self.getFishes()
-        positions = self.maxX * self.maxY 
+        positions = self.maxX * self.maxY
         empty = positions - sharks - fishes
         return "Sharks: %d Fishes: %d Empty: %d" % (sharks, fishes, empty)
-                    
+
 
 class Creature(object):
-    def __init__(self, sea, pos, traditional=True, spawnAge=2):
+    def __init__(self, sea, pos, traditional, spawnAge, starveAge):
         '''
         Simple creature, reproduces quickly, does not eat, and never dies except if eaten.
         '''
@@ -216,14 +215,15 @@ class Creature(object):
         self.traditional = traditional
         self.age = 0
         self.spawnAge = spawnAge
+        self.starveAge = starveAge # set but not used by basic creature
         self.alive = True
-    
+
     def getPosition(self):
         return self.pos
-    
+
     def setPosition(self, pos):
         self.pos = pos
-        
+
     def isAlive(self):
         return self.alive
 
@@ -234,16 +234,16 @@ class Creature(object):
         x,y = self.pos.getSeaPosition()
         self.sea.emptyCell(x,y)
         self.alive = False
-        
+
     def spawn(self,free):
         if self.age >= self.spawnAge:
             spawnX, spawnY = random.choice(free)
-            self.sea.addCreature(spawnX, spawnY, type(self), self.traditional)
+            self.sea.addCreature(spawnX, spawnY, type(self), self.traditional, self.spawnAge, self.starveAge)
             self.age = 0
             return True
         else:
             return False
-    
+
     def move(self,empty):
         '''
         move to an empty space.
@@ -253,8 +253,7 @@ class Creature(object):
         if self.sea.setCell(newX, newY, self):
             self.sea.emptyCell(oldX, oldY)
             self.pos = SeaPosition(newX, newY, self.sea)
-            
-        
+
     def turn(self):
         if self.alive:
             self.age += 1
@@ -262,16 +261,15 @@ class Creature(object):
             if len(empty) > 0:
                 if not self.spawn(empty):
                     self.move(empty)
-    
+
     def __str__(self):
         return "%s" % str(self.pos)
-    
+
 class Shark(Creature):
-    def __init__(self, sea, pos, traditional=True, spawnAge=5, starveAge=3):
-        Creature.__init__(self, sea, pos, traditional, spawnAge)
-        self.starveAge = starveAge
+    def __init__(self, sea, pos, traditional, spawnAge, starveAge):
+        Creature.__init__(self, sea, pos, traditional, spawnAge, starveAge)
         self.starve = 0
-        
+
     def eat(self,occupied):
         '''
         Either find something to eat, or move (randomly) to a free adjacent spot.
@@ -291,7 +289,7 @@ class Shark(Creature):
                 self.sea.emptyCell(oldX, oldY)
                 self.starve = 0
                 return True
-        
+
     def turn(self):
         if self.alive:
             self.age += 1
@@ -307,46 +305,64 @@ class Shark(Creature):
                 elif len(empty) > 0:
                     if not self.spawn(empty):
                         self.move(empty)
-    
+
     def __str__(self):
         return "%s %s Alive: %s" % ('Shark', Creature.__str__(self), str(self.alive))
-    
+
 class Fish(Creature):
-    def __init__(self, sea, pos, spawnAge=2):
-        Creature.__init__(self, sea, pos, spawnAge)
-    
+    def __init__(self, sea, pos, traditional, spawnAge, starveAge):
+        Creature.__init__(self, sea, pos, traditional, spawnAge, starveAge)
+
     def __str__(self):
         return "%s %s Alive: %s  Age: %d" % ('Fish', Creature.__str__(self), str(self.alive), self.age)
-    
-def wator(x,y,s,f,traditional,chronons):
+
+def wator(x,y,s,f,traditional,chronons,sharkspawn,sharkstarve,fishspawn):
     '''
-    x =  width of the sea, y the height of the sea - longitude and latitude
-    s = number of sharks, f the number of fishes - all creaturs (so far)
+    x =  width of the sea, y the height of the sea - longitude and latitude.
+    s = number of sharks, f the number of fishes - all creaturs (so far).
     traditional = traditional creature movement - n,e,s,w.
         default is new - n, ne, e, se, s, sw, w, ne.
     chronons = maximum number of chronons to run.
+    sharkspawn = age at which a shark breeds.
+    sharkstarve = age at which a shark dies if it has not eaten.
+    fishspawn = age at which a fish spawns.
     '''
-    
+
     # the number of sharks and fishes cannot be greater than the
     # size of the sea
     if (s+f) > x*y:
         print('Too many creatures')
         exit(2)
     # check the number of chronons to run.
-    # 999,999 is over 11 hours at 24fps, and most likely far beyond 
+    # 999,999 is over 11 hours at 24fps, and most likely far beyond.
     # the storage space.
     if chronons < 1 or args.chronons > 999999:
         print("Chronons must be in range 1 - 999999")
         quit(3)
-    
+
+    # check sharkspawn
+    if sharkspawn < 1:
+        print("Shark spawn age must be greater than zero.")
+        quit(4)
+
+    # check sharkspawn
+    if sharkstarve < 1:
+        print("Shark starve time must be greater than zero.")
+        quit(4)
+
+    # check fishpawn
+    if fishspawn < 1:
+        print("Fish spawn age must be greater than zero.")
+        quit(4)
+
     aSea = Sea(x,y)
-    
+
     for shark in range(s):
         noCell = True
         while noCell:
             xS = random.randint(0,x-1)
             yS = random.randint(0,y-1)
-            if aSea.addCreature(xS,yS,Shark,traditional):
+            if aSea.addCreature(xS,yS,Shark,traditional,sharkspawn,sharkstarve):
                 noCell = False
 
     for fish in range(f):
@@ -354,7 +370,7 @@ def wator(x,y,s,f,traditional,chronons):
         while noCell:
             xF = random.randint(0,x-1)
             yF = random.randint(0,y-1)
-            if aSea.addCreature(xF,yF,Fish,traditional):
+            if aSea.addCreature(xF,yF,Fish,traditional,fishspawn):
                 noCell = False
 
     # print first message
@@ -383,7 +399,7 @@ def wator(x,y,s,f,traditional,chronons):
     print("END -:- Simulation complete after %d chronons. Ran for %d:%02d:%02d" % (tick, hours, minutes, seconds))
 
 
-# Parse options, then call wator()            
+# Parse options, then call wator()
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--chronons", type=int,
                     help="maximum number of chronons to calculate, default 999999",
@@ -391,9 +407,18 @@ parser.add_argument("-c", "--chronons", type=int,
 parser.add_argument("-f", "--fishes", type=int,
                     help="initial number of fishes",
                     default=0)
+parser.add_argument("--fishspawn", type=int,
+                    help="age that a fish spawns at, default 2, must be greater than 0",
+                    default=2)
 parser.add_argument("-s", "--sharks", type=int,
                     help="initial number of sharks",
                     default=0)
+parser.add_argument("--sharkspawn", type=int,
+                    help="age that a sharks spawns at, default 5, must be greater than 0",
+                    default=5)
+parser.add_argument("--sharkstarve", type=int,
+                    help="chronons that a shark can live without eating, default 3, must be greater than 0",
+                    default=3)
 parser.add_argument("-S", "--System", action="store_true",
                     help="use SystemRandom giving unique runs, otherwise, default to a seed of 42",
                     default=False)
@@ -406,7 +431,7 @@ parser.add_argument("-x", type=int,
 parser.add_argument("-y", type=int,
                     help="number of vertical cells, default 200",
                     default=200)
-# get the arguments    
+# get the arguments
 args = parser.parse_args()
 # calculate the size of the sea
 total_cells = args.x * args.y
@@ -418,12 +443,11 @@ else:
 if args.fishes == 0:
     fishes = int(total_cells/4)
 else:
-    fishes = args.fishes 
+    fishes = args.fishes
 # determine RNG
 if args.System:
     random = random.SystemRandom()
 else:
     random.seed(42)
-    
-wator(args.x, args.y, sharks, fishes, args.traditional, args.chronons)
-#        return "maxX: %d maxY: %d Positions: %d Sharks: %d Fishes: %d Empty: %d" % (self.maxX, self.maxY, positions, sharks, fishes, empty)
+
+wator(args.x, args.y, sharks, fishes, args.traditional, args.chronons, args.sharkspawn, args.sharkstarve, args.fishspawn)
