@@ -1,0 +1,27 @@
+usage: wator.py [-h] [-c CHRONONS] [-f FISHES] [--fishspawn FISHSPAWN]
+                [-s SHARKS] [--sharkspawn SHARKSPAWN]
+                [--sharkstarve SHARKSTARVE] [-S] [-t] [-x X] [-y Y]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CHRONONS, --chronons CHRONONS
+                        maximum number of chronons to calculate, default
+                        999999
+  -f FISHES, --fishes FISHES
+                        initial number of fishes
+  --fishspawn FISHSPAWN
+                        age that a fish spawns at, default 2, must be greater
+                        than 0
+  -s SHARKS, --sharks SHARKS
+                        initial number of sharks
+  --sharkspawn SHARKSPAWN
+                        age that a sharks spawns at, default 5, must be
+                        greater than 0
+  --sharkstarve SHARKSTARVE
+                        chronons that a shark can live without eating, default
+                        3, must be greater than 0
+  -S, --System          use SystemRandom giving unique runs, otherwise,
+                        default to a seed of 42
+  -t, --traditional     traditional search pattern
+  -x X                  number of horizontal cells, default 200
+  -y Y                  number of vertical cells, default 200
