@@ -20,6 +20,9 @@ import random
 import time
 
 class SeaPosition(object):
+    """
+    Cartesian position (x,y) within the sea.
+    """
     def __init__(self, x, y, sea):
         """
         Initialize position with given coordinates
@@ -39,10 +42,10 @@ class SeaPosition(object):
 
     def getAdjacent(self, traditional):
         """
-        returns two arrays of tuples for the positions adjacent to the position.
-        the first contains location tuples for empty cells, while the second
+        Returns two arrays of tuples for the positions adjacent to the position.
+        The first contains location tuples for empty cells, while the second
         contains cells with a creature in it.
-        the cells can either be those in the n, e, s, w postion, or all eight
+        The cells can either be those in the n, e, s, w postion, or all eight
         surrounding cells - n, ne, e, se, s, sw, w, ne.
         traditional:
                     (0,+1)
@@ -74,14 +77,14 @@ class SeaPosition(object):
         return "(%d, %d)" % (self.x, self.y)
 
 class Sea(object):
-    '''
+    """
     A sea of x by y cells.
     A cell can hold one thing or be empty (None).
-    '''
+    """
     def __init__(self, x, y):
-        '''
-        Initialize and empty sea.
-        '''
+        """
+        Initialize an empty sea.
+        """
         self.filenumber = 0
         self.creatures = {}
         self.creatureTag = 0
@@ -99,6 +102,10 @@ class Sea(object):
         return self.maxY
 
     def isCellEmpty(self, x, y):
+        """
+        If cell is None type, or contains a dead creature it is empty,
+        otherwise it is not.
+        """
         try:
             if self.sea[x][y] == None:
                 return True
@@ -110,10 +117,10 @@ class Sea(object):
             return False
 
     def setCell(self, x, y, c):
-        '''
+        """
         Put creature c in cell (x,y) of the sea, if the cell is empty
         Return True if possible and false if not.
-        '''
+        """
         result = False
         try:
             if self.isCellEmpty(x,y):
@@ -147,9 +154,9 @@ class Sea(object):
         return self.fishes
 
     def addCreature(self, x, y, newCreature, t, spawn, starve=99):
-        '''
+        """
         If creature can be added to sea, add it to the list of creatures
-        '''
+        """
         if self.isCellEmpty(x, y):
             pos = SeaPosition(x,y,self)
             creature = newCreature(self, pos, t, spawn, starve)
@@ -168,6 +175,9 @@ class Sea(object):
         return self.creatures[tag]
 
     def cleanCreatures(self):
+        """
+        Remove the dead creatures from the dictionary of self.creatures.
+        """
         self.sharks = 0
         self.fishes = 0
         aliveCreatures = {}
@@ -182,6 +192,10 @@ class Sea(object):
         self.creatures = aliveCreatures
 
     def display(self):
+        """
+        Show the sharks, fishes, empty sea as a red, green, or blue pixel, respectively.
+        Save each screen as a png file.
+        """
         screenArray = numpy.zeros((self.maxX,self.maxY))
         for y in range(self.maxY-1,-1,-1):
             for x in range(self.maxX):
@@ -206,10 +220,13 @@ class Sea(object):
 
 
 class Creature(object):
+    """
+    Super class of all sea creatures.
+    """
     def __init__(self, sea, pos, traditional, spawnAge, starveAge):
-        '''
+        """
         Simple creature, reproduces quickly, does not eat, and never dies except if eaten.
-        '''
+        """
         self.sea = sea
         self.pos = pos
         self.traditional = traditional
@@ -228,14 +245,17 @@ class Creature(object):
         return self.alive
 
     def died(self):
-        '''
-        remove from sea, and set dead
-        '''
+        """
+        Remove from sea, and set dead (alive = False)
+        """
         x,y = self.pos.getSeaPosition()
         self.sea.emptyCell(x,y)
         self.alive = False
 
     def spawn(self,free):
+        """
+        If old enough, and there is free space, spawn.
+        """
         if self.age >= self.spawnAge:
             spawnX, spawnY = random.choice(free)
             self.sea.addCreature(spawnX, spawnY, type(self), self.traditional, self.spawnAge, self.starveAge)
@@ -245,9 +265,9 @@ class Creature(object):
             return False
 
     def move(self,empty):
-        '''
-        move to an empty space.
-        '''
+        """
+        Move to a space it is empty.
+        """
         newX, newY = random.choice(empty)
         oldX, oldY = self.pos.getSeaPosition()
         if self.sea.setCell(newX, newY, self):
@@ -255,6 +275,9 @@ class Creature(object):
             self.pos = SeaPosition(newX, newY, self.sea)
 
     def turn(self):
+        """
+        The basic creature moves or spawns and moves.
+        """
         if self.alive:
             self.age += 1
             empty, occupied = self.pos.getAdjacent(self.traditional)
@@ -266,14 +289,17 @@ class Creature(object):
         return "%s" % str(self.pos)
 
 class Shark(Creature):
+    """
+    Extend a regular sea creature to hunt and eat - be a shark
+    """
     def __init__(self, sea, pos, traditional, spawnAge, starveAge):
         Creature.__init__(self, sea, pos, traditional, spawnAge, starveAge)
         self.starve = 0
 
     def eat(self,occupied):
-        '''
+        """
         Either find something to eat, or move (randomly) to a free adjacent spot.
-        '''
+        """
         fishes = []
         for cell in occupied:
             x,y = cell[0],cell[1]
@@ -291,6 +317,11 @@ class Shark(Creature):
                 return True
 
     def turn(self):
+        """
+        Sharks can die of starvation. If it has not starved try to eat
+        after eating spawn (if possible). If there are no fish nearby, and 
+        spawning is possible, spawn, otherwise move.
+        """
         if self.alive:
             self.age += 1
             self.starve += 1
@@ -310,6 +341,9 @@ class Shark(Creature):
         return "%s %s Alive: %s" % ('Shark', Creature.__str__(self), str(self.alive))
 
 class Fish(Creature):
+    """
+    Extend sea creature, and identify it as a fish. 
+    """
     def __init__(self, sea, pos, traditional, spawnAge, starveAge):
         Creature.__init__(self, sea, pos, traditional, spawnAge, starveAge)
 
@@ -317,7 +351,7 @@ class Fish(Creature):
         return "%s %s Alive: %s  Age: %d" % ('Fish', Creature.__str__(self), str(self.alive), self.age)
 
 def wator(x,y,s,f,traditional,chronons,sharkspawn,sharkstarve,fishspawn):
-    '''
+    """
     x =  width of the sea, y the height of the sea - longitude and latitude.
     s = number of sharks, f the number of fishes - all creaturs (so far).
     traditional = traditional creature movement - n,e,s,w.
@@ -326,7 +360,7 @@ def wator(x,y,s,f,traditional,chronons,sharkspawn,sharkstarve,fishspawn):
     sharkspawn = age at which a shark breeds.
     sharkstarve = age at which a shark dies if it has not eaten.
     fishspawn = age at which a fish spawns.
-    '''
+    """
 
     # the number of sharks and fishes cannot be greater than the
     # size of the sea
