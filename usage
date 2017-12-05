@@ -1,17 +1,24 @@
-usage: wator.py [-h] [-c CHRONONS] [-f FISHES] [--fishspawn FISHSPAWN]
-                [-s SHARKS] [--sharkspawn SHARKSPAWN]
-                [--sharkstarve SHARKSTARVE] [-S] [-t] [-x X] [-y Y]
+usage: wator.py [-h] [-c CHRONONS] [-C COMMIT] [-F FILE] [-f FISHES]
+                [--fishspawn FISHSPAWN] [-R | -S] [-s SHARKS]
+                [--sharkspawn SHARKSPAWN] [--sharkstarve SHARKSTARVE]
+                [--system] [-t] [-x X] [-y Y]
 
 optional arguments:
   -h, --help            show this help message and exit
   -c CHRONONS, --chronons CHRONONS
                         maximum number of chronons to calculate, default
                         999999
+  -C COMMIT, --Commit COMMIT
+                        chronons between checkpoint saves, range 5 - 200,
+                        default 100
+  -F FILE, --File FILE  name of the checkpoints file, default save.p
   -f FISHES, --fishes FISHES
                         initial number of fishes
   --fishspawn FISHSPAWN
                         age that a fish spawns at, default 2, must be greater
                         than 0
+  -R, --Restore         restore from --File
+  -S, --Save            save to --File
   -s SHARKS, --sharks SHARKS
                         initial number of sharks
   --sharkspawn SHARKSPAWN
@@ -20,7 +27,7 @@ optional arguments:
   --sharkstarve SHARKSTARVE
                         chronons that a shark can live without eating, default
                         3, must be greater than 0
-  -S, --System          use SystemRandom giving unique runs, otherwise,
+  --system              use SystemRandom giving unique runs, otherwise,
                         default to a seed of 42
   -t, --traditional     traditional search pattern
   -x X                  number of horizontal cells, default 200
