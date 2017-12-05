@@ -350,7 +350,7 @@ class Fish(Creature):
     def __str__(self):
         return "%s %s Alive: %s  Age: %d" % ('Fish', Creature.__str__(self), str(self.alive), self.age)
 
-def wator(x,y,s,f,traditional,chronons,sharkspawn,sharkstarve,fishspawn, commit, file, restore, save):
+def run_simulation(x,y,s,f,traditional,chronons,sharkspawn,sharkstarve,fishspawn, commit, file, restore, save):
     """
     x =  width of the sea, y the height of the sea - longitude and latitude.
     s = number of sharks, f the number of fishes - all creaturs (so far).
@@ -497,4 +497,4 @@ if args.system:
 else:
     random.seed(42)
 
-wator(args.x, args.y, sharks, fishes, args.traditional, args.chronons, args.sharkspawn, args.sharkstarve, args.fishspawn, args.Commit, args.File, args.Restore, args.Save)
+run_simulation(args.x, args.y, sharks, fishes, args.traditional, args.chronons, args.sharkspawn, args.sharkstarve, args.fishspawn, args.Commit, args.File, args.Restore, args.Save)
