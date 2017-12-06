@@ -10,7 +10,7 @@ SeaCreature is the supper class from which the creatures
 in the simulation are created.
 """
 
-from seaposition import SeaPosition
+from seaposition import *
 from sea import *
 
 class SeaCreature(object):
