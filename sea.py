@@ -155,10 +155,18 @@ class Sea(object):
         pygame.image.save(self.screen, ("images/wator_%06d.png" % self.filenumber))
         self.filenumber += 1
 
+    def exportSea(self):
+        return (self.maxX,self.maxY,self.creatureTag,self.filenumber)
+
+    def setFileNumber(self, filenumber):
+        self.filenumber = filenumber
+
+    def setCreatureTag(self, creatureTag):
+        self.creatureTag = creatureTag
+        
     def __str__(self):
         sharks = self.getSharks()
         fishes = self.getFishes()
         positions = self.maxX * self.maxY
         empty = positions - sharks - fishes
         return "Sharks: %d Fishes: %d Empty: %d" % (sharks, fishes, empty)
-
