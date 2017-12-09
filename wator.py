@@ -215,14 +215,10 @@ def command_line():
 
 def run_simulation(aSea, chronons, save, commit):
     """
-    x =  width of the sea, y the height of the sea - longitude and latitude.
-    s = number of sharks, f the number of fishes - all creaturs (so far).
-    traditional = traditional creature movement - n,e,s,w.
-        default is new - n, ne, e, se, s, sw, w, ne.
+    aSea = sea containing all creatures.
     chronons = maximum number of chronons to run.
-    sharkspawn = age at which a shark breeds.
-    sharkstarve = age at which a shark dies if it has not eaten.
-    fishspawn = age at which a fish spawns.
+    save = if True save to file.
+    commit = number of chronons between commits.
     """
 
     # print first message
