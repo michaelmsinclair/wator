@@ -80,6 +80,9 @@ class SeaCreature(object):
                 if not self.spawn(empty):
                     self.move(empty)
 
+    def exportCreature(self):
+        return (self.pos.getSeaPosition(), self.traditional, self.age, self.spawnAge, self.starveAge, self.alive)
+
     def __str__(self):
         return "%s" % str(self.pos)
 
@@ -131,9 +134,12 @@ class Shark(SeaCreature):
                 elif len(empty) > 0:
                     if not self.spawn(empty):
                         self.move(empty)
+    
+    def exportCreature(self):
+        return (type(self), SeaCreature.exportCreature(self), self.starve)
 
     def __str__(self):
-        return "%s %s Alive: %s" % ('Shark', SeaCreature.__str__(self), str(self.alive))
+        return "%s %s Alive: %s" % ('Shark', SeaCreature.__str__(self), str(self.alive), self.age, self.starve)
 
 class Fish(SeaCreature):
     """
@@ -141,6 +147,9 @@ class Fish(SeaCreature):
     """
     def __init__(self, sea, pos, traditional, spawnAge, starveAge, random):
         SeaCreature.__init__(self, sea, pos, traditional, spawnAge, starveAge, random)
+
+    def exportCreature(self):
+        return (type(self), SeaCreature.exportCreature(self))
 
     def __str__(self):
         return "%s %s Alive: %s  Age: %d" % ('Fish', SeaCreature.__str__(self), str(self.alive), self.age)
