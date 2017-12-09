@@ -1,4 +1,6 @@
 __pycache__/
+commits/
+images/
 ttd
 **/*.log
 **/*.mp4
