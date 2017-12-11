@@ -1,19 +1,24 @@
-usage: wator.py [-h] [-c CHRONONS] [-f FISHES] [--fishspawn FISHSPAWN]
-                [-s SHARKS] [--sharkspawn SHARKSPAWN]
-                [--sharkstarve SHARKSTARVE] [--system] [-t] [-x X] [-y Y]
+usage: wator.py [-h] [-c CHRONONS] [-C COMMIT] [-f FISHES]
+                [--fishspawn FISHSPAWN] [-R | -S] [-s SHARKS]
+                [--sharkspawn SHARKSPAWN] [--sharkstarve SHARKSTARVE]
+                [--system] [-t] [-x X] [-y Y]
 
 optional arguments:
   -h, --help            show this help message and exit
   -c CHRONONS, --chronons CHRONONS
                         maximum number of chronons to calculate, default
                         999999
+  -C COMMIT, --Commit COMMIT
+                        number of chronons between saving to file, default 25
   -f FISHES, --fishes FISHES
-                        initial number of fishes
+                        initial number of fishes, default 1/4 of the sea
   --fishspawn FISHSPAWN
                         age that a fish spawns at, default 2, must be greater
                         than 0
+  -R, --Restore         restore a saved sea
+  -S, --Save            save the sea at --Commit intervals
   -s SHARKS, --sharks SHARKS
-                        initial number of sharks
+                        initial number of sharks, default 1/10 of the sea
   --sharkspawn SHARKSPAWN
                         age that a sharks spawns at, default 5, must be
                         greater than 0

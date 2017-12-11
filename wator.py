@@ -17,7 +17,6 @@ import argparse
 import time
 import pickle
 
-
 from sea import *
 
 def wator():
@@ -30,33 +29,72 @@ def wator():
         random = random.SystemRandom()
     else:
         random.seed(42)
-
-    aSea = generate(args.x, args.y, args.sharks, args.fishes, args.traditional, args.sharkspawn, args.sharkstarve, args.fishspawn, random)
+        
+    # check --Commit > 0
+    if args.Save:
+        if args.Commit < 1:
+            print("--Commit must be greater than zero")
+            exit(2)
+    # restore, or start new
+    if args.Restore:
+        aSea = restoreSea(random)
+        args.Save = True # if restored, implies that commits need to continue.
+    else:
+        aSea = generateSea(args.x, args.y, args.sharks, args.fishes, args.traditional, args.sharkspawn, args.sharkstarve, args.fishspawn, random)
         
     # run the simulation
-    run_simulation(aSea, args.chronons)
+    run_simulation(aSea, args.chronons, args.Save, args.Commit)
 
-def restoreFile(file):
+def restoreSea(random,save_s="commits/save_sea.p",save_c="commits/save_creatures.p"):
     """
     Restore from the file.
     """
     try:
-        theSea = pickle.load(open( file, "rb" ))
-        return theSea
-    except:
-        print("whoops")
+        [x, y, creatureTag, fileNumber] = pickle.load(open(save_s, "rb" ))
+        theSea = Sea(x, y, random)
+        theSea.setCreatureTag(creatureTag)
+        theSea.setFileNumber(fileNumber)
+    except FileNotFoundError:
+        print("Restore file save_sea.p not found")
         exit(3)
+    except Exception as e:
+        print(repr(e))
+    
+    # using a generator, so that creatures can be iterated
+    try:
+        for [creature, x, y, traditional, spawnAge, starveAge, alive, age, starve] in readCreatures(save_c):
+            theSea.addCreature(x,y,creature,traditional,spawnAge,starveAge)
+    except Exception as f:
+        print('f', repr(f))
+
+    return theSea
+
+def readCreatures(pickleFile):
+        try:
+            with open(pickleFile, "rb" ) as pickleFH:
+                while True:
+                    yield pickle.load(pickleFH)
+        except FileNotFoundError:
+            print("Restore file save_creatures.p not found")
+            exit(3)
+        except EOFError:
+            pass
         
-def saveFile(aSea, chronon, file):
+def saveSea(saveSea,save_s="commits/save_sea.p",save_c="commits/save_creatures.p"):
     """
-    Save to the file.
+    Save sea and creatures for later restore.
     """
-    creatures = dict.copy(aSea.creatures)
-    gerkin = [creatures, chronon]
-    pickle.dump( creatures, open( file, "wb" ) )
+    seaFH  = open(save_s, "wb")
+    pickle.dump(saveSea.exportSea(), seaFH)
+    seaFH.close()
+    
+    creatureFH = open(save_c, "wb")
+    for c in saveSea.creatures.values():
+        pickle.dump(c.exportCreature(), creatureFH)
+    creatureFH.close()    
 
         
-def generate(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
+def generateSea(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
     """
     x =  width of the sea, y the height of the sea - longitude and latitude.
     s = number of sharks, f the number of fishes - all creaturs (so far).
@@ -121,14 +159,24 @@ def command_line():
     parser.add_argument("-c", "--chronons", type=int,
                         help="maximum number of chronons to calculate, default 999999",
                         default=999999)
+    parser.add_argument("-C", "--Commit", type=int,
+                        help="number of chronons between saving to file, default 25",
+                        default=25)
     parser.add_argument("-f", "--fishes", type=int,
-                        help="initial number of fishes",
+                        help="initial number of fishes, default 1/4 of the sea",
                         default=0)
     parser.add_argument("--fishspawn", type=int,
                         help="age that a fish spawns at, default 2, must be greater than 0",
                         default=2)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-R", "--Restore", action="store_true",
+                        help="restore a saved sea",
+                        default=False)
+    group.add_argument("-S", "--Save", action="store_true",
+                        help="save the sea at --Commit intervals",
+                        default=False)
     parser.add_argument("-s", "--sharks", type=int,
-                        help="initial number of sharks",
+                        help="initial number of sharks, default 1/10 of the sea",
                         default=0)
     parser.add_argument("--sharkspawn", type=int,
                         help="age that a sharks spawns at, default 5, must be greater than 0",
@@ -165,16 +213,12 @@ def command_line():
     return args    
     
 
-def run_simulation(aSea, chronons):
+def run_simulation(aSea, chronons, save, commit):
     """
-    x =  width of the sea, y the height of the sea - longitude and latitude.
-    s = number of sharks, f the number of fishes - all creaturs (so far).
-    traditional = traditional creature movement - n,e,s,w.
-        default is new - n, ne, e, se, s, sw, w, ne.
+    aSea = sea containing all creatures.
     chronons = maximum number of chronons to run.
-    sharkspawn = age at which a shark breeds.
-    sharkstarve = age at which a shark dies if it has not eaten.
-    fishspawn = age at which a fish spawns.
+    save = if True save to file.
+    commit = number of chronons between commits.
     """
 
     # print first message
@@ -192,10 +236,16 @@ def run_simulation(aSea, chronons):
         before = time.clock()
         aSea.display()
         elapsedDisp = time.clock() - before
+        if save:
+            if tick % commit == 0:
+                saveSea(aSea)
         tick += 1
         print("Chronon: %06d Turn: %3.4f Display: %3.4f %s"
               % (tick,elapsedTurn,elapsedDisp,aSea) )
     endTime = time.clock()
+    # final commit
+    if save:
+        saveSea(aSea)
 
     # print final message
     hours, remainingSeconds = divmod(endTime-startTime, 3600)

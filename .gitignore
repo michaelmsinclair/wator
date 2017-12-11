@@ -1,4 +1,7 @@
 __pycache__/
+commits/
+images/
+nohup.out
 ttd
 **/*.log
 **/*.mp4

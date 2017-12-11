@@ -26,6 +26,7 @@ class SeaCreature(object):
         self.traditional = traditional
         self.age = 0
         self.spawnAge = spawnAge
+        self.starve = 0
         self.starveAge = starveAge # set but not used by basic creature
         self.alive = True
         self.random = random
@@ -80,6 +81,15 @@ class SeaCreature(object):
                 if not self.spawn(empty):
                     self.move(empty)
 
+    def setAge(self,age):
+        self.age = age
+
+    def setStarve(self,starve):
+        self.starve = starve
+
+    def exportCreature(self):
+        return [self.pos.getX(), self.pos.getY(), self.traditional, self.spawnAge, self.starveAge, self.alive, self.age, self.starve]
+
     def __str__(self):
         return "%s" % str(self.pos)
 
@@ -128,12 +138,18 @@ class Shark(SeaCreature):
                 if len(occupied) > 0:
                     if self.eat(occupied):
                         self.spawn([(spawnX, spawnY)])
+                    elif len(empty) > 0:
+                        if not self.spawn(empty):
+                            self.move(empty)
                 elif len(empty) > 0:
                     if not self.spawn(empty):
                         self.move(empty)
+    
+    def exportCreature(self):
+        return [type(self)] + SeaCreature.exportCreature(self)
 
     def __str__(self):
-        return "%s %s Alive: %s" % ('Shark', SeaCreature.__str__(self), str(self.alive))
+        return "%s %s Alive: %s" % ('Shark', SeaCreature.__str__(self), str(self.alive), self.age, self.starve)
 
 class Fish(SeaCreature):
     """
@@ -141,6 +157,9 @@ class Fish(SeaCreature):
     """
     def __init__(self, sea, pos, traditional, spawnAge, starveAge, random):
         SeaCreature.__init__(self, sea, pos, traditional, spawnAge, starveAge, random)
+
+    def exportCreature(self):
+        return [type(self)] + SeaCreature.exportCreature(self)
 
     def __str__(self):
         return "%s %s Alive: %s  Age: %d" % ('Fish', SeaCreature.__str__(self), str(self.alive), self.age)

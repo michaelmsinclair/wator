@@ -28,7 +28,7 @@ class Sea(object):
         """
         Initialize an empty sea.
         """
-        self.filenumber = 0
+        self.fileNumber = 0
         self.creatures = {}
         self.creatureTag = 0
         self.maxX = x
@@ -152,13 +152,21 @@ class Sea(object):
                     screenArray[x][y] = 0x0000ff
         pygame.surfarray.blit_array(self.screen, screenArray)
         pygame.display.flip()
-        pygame.image.save(self.screen, ("images/wator_%06d.png" % self.filenumber))
-        self.filenumber += 1
+        pygame.image.save(self.screen, ("images/wator_%06d.png" % self.fileNumber))
+        self.fileNumber += 1
 
+    def exportSea(self):
+        return [self.maxX,self.maxY,self.creatureTag,self.fileNumber]
+
+    def setFileNumber(self, fileNumber):
+        self.fileNumber = fileNumber
+
+    def setCreatureTag(self, creatureTag):
+        self.creatureTag = creatureTag
+        
     def __str__(self):
         sharks = self.getSharks()
         fishes = self.getFishes()
         positions = self.maxX * self.maxY
         empty = positions - sharks - fishes
         return "Sharks: %d Fishes: %d Empty: %d" % (sharks, fishes, empty)
-
