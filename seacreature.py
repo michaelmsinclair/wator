@@ -24,9 +24,9 @@ class SeaCreature(object):
         self.sea = sea
         self.pos = pos
         self.traditional = traditional
-        self.age = 0
+        self.age = random.randint(0, spawnAge - 1)
         self.spawnAge = spawnAge
-        self.starve = 0
+        self.starve = random.randint(0, starveAge - 1)
         self.starveAge = starveAge # set but not used by basic creature
         self.alive = True
         self.random = random
@@ -99,7 +99,6 @@ class Shark(SeaCreature):
     """
     def __init__(self, sea, pos, traditional, spawnAge, starveAge, random):
         SeaCreature.__init__(self, sea, pos, traditional, spawnAge, starveAge, random)
-        self.starve = 0
 
     def eat(self,occupied):
         """

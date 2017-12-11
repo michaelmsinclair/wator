@@ -100,6 +100,7 @@ class Sea(object):
     def addCreature(self, x, y, newCreature, t, spawn, starve=99):
         """
         If creature can be added to sea, add it to the list of creatures
+        Return the creature if added, None otherwise
         """
         if self.isCellEmpty(x, y):
             pos = SeaPosition(x,y,self)
@@ -111,9 +112,9 @@ class Sea(object):
                 self.sharks += 1
             elif type(creature) is Fish:
                 self.fishes += 1
-            return True
+            return creature
         else:
-            return False
+            return None
 
     def getCreature(self, tag):
         return self.creatures[tag]
