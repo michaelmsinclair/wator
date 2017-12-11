@@ -226,7 +226,6 @@ def run_simulation(aSea, chronons, save, commit, firstChronon=0):
     """
 
     # print first message
-    print("Save", save)
     print("BEGIN -:- maxX: %d maxY: %d Positions: %d" % (aSea.getMaxX(), aSea.getMaxY(), aSea.getMaxX() * aSea.getMaxY()))
 
     startTime = time.clock()
