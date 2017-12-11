@@ -63,7 +63,10 @@ def restoreSea(random,save_s="commits/save_sea.p",save_c="commits/save_creatures
     # using a generator, so that creatures can be iterated
     try:
         for [creature, x, y, traditional, spawnAge, starveAge, alive, age, starve] in readCreatures(save_c):
-            theSea.addCreature(x,y,creature,traditional,spawnAge,starveAge)
+            c = theSea.addCreature(x,y,creature,traditional,spawnAge,starveAge)
+            if c != None:
+                c.setAge(age)
+                c.setStarve(starve)
     except Exception as f:
         print('f', repr(f))
 
@@ -140,7 +143,7 @@ def generateSea(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
         while noCell:
             xS = random.randint(0,x-1)
             yS = random.randint(0,y-1)
-            if aSea.addCreature(xS,yS,Shark,traditional,sharkspawn,sharkstarve):
+            if aSea.addCreature(xS,yS,Shark,traditional,sharkspawn,sharkstarve) != None:
                 noCell = False
 
     for fish in range(f):
@@ -148,7 +151,7 @@ def generateSea(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
         while noCell:
             xF = random.randint(0,x-1)
             yF = random.randint(0,y-1)
-            if aSea.addCreature(xF,yF,Fish,traditional,fishspawn):
+            if aSea.addCreature(xF,yF,Fish,traditional,fishspawn) != None:
                 noCell = False
     
     return aSea
