@@ -36,21 +36,22 @@ def wator():
             print("--Commit must be greater than zero")
             exit(2)
     # restore, or start new
+    chronon = 0
     if args.Restore:
-        aSea = restoreSea(random)
+        [aSea, chronon] = restoreSea(random)
         args.Save = True # if restored, implies that commits need to continue.
     else:
         aSea = generateSea(args.x, args.y, args.sharks, args.fishes, args.traditional, args.sharkspawn, args.sharkstarve, args.fishspawn, random)
         
     # run the simulation
-    run_simulation(aSea, args.chronons, args.Save, args.Commit)
+    run_simulation(aSea, args.chronons, args.Save, args.Commit, chronon)
 
 def restoreSea(random,save_s="commits/save_sea.p",save_c="commits/save_creatures.p"):
     """
     Restore from the file.
     """
     try:
-        [x, y, creatureTag, fileNumber] = pickle.load(open(save_s, "rb" ))
+        [x, y, creatureTag, fileNumber, chronon] = pickle.load(open(save_s, "rb" ))
         theSea = Sea(x, y, random)
         theSea.setCreatureTag(creatureTag)
         theSea.setFileNumber(fileNumber)
@@ -70,7 +71,7 @@ def restoreSea(random,save_s="commits/save_sea.p",save_c="commits/save_creatures
     except Exception as f:
         print('f', repr(f))
 
-    return theSea
+    return [theSea, chronon]
 
 def readCreatures(pickleFile):
         try:
@@ -83,12 +84,12 @@ def readCreatures(pickleFile):
         except EOFError:
             pass
         
-def saveSea(saveSea,save_s="commits/save_sea.p",save_c="commits/save_creatures.p"):
+def saveSea(saveSea, chronon,save_s="commits/save_sea.p",save_c="commits/save_creatures.p"):
     """
     Save sea and creatures for later restore.
     """
     seaFH  = open(save_s, "wb")
-    pickle.dump(saveSea.exportSea(), seaFH)
+    pickle.dump(saveSea.exportSea() + [chronon], seaFH)
     seaFH.close()
     
     creatureFH = open(save_c, "wb")
@@ -216,7 +217,7 @@ def command_line():
     return args    
     
 
-def run_simulation(aSea, chronons, save, commit):
+def run_simulation(aSea, chronons, save, commit, firstChronon=0):
     """
     aSea = sea containing all creatures.
     chronons = maximum number of chronons to run.
@@ -225,11 +226,12 @@ def run_simulation(aSea, chronons, save, commit):
     """
 
     # print first message
+    print("Save", save)
     print("BEGIN -:- maxX: %d maxY: %d Positions: %d" % (aSea.getMaxX(), aSea.getMaxY(), aSea.getMaxX() * aSea.getMaxY()))
 
     startTime = time.clock()
-    tick = 0
-    while tick < chronons and aSea.getSharks() != 0 and aSea.getFishes() != 0:  # in range(200):
+    tick = firstChronon
+    while tick < firstChronon+chronons and aSea.getSharks() != 0 and aSea.getFishes() != 0:  # in range(200):
         before = time.clock()
         theCreatures = aSea.creatures.copy()
         for c in theCreatures.values():
@@ -241,14 +243,14 @@ def run_simulation(aSea, chronons, save, commit):
         elapsedDisp = time.clock() - before
         if save:
             if tick % commit == 0:
-                saveSea(aSea)
+                saveSea(aSea, tick)
         tick += 1
         print("Chronon: %06d Turn: %3.4f Display: %3.4f %s"
               % (tick,elapsedTurn,elapsedDisp,aSea) )
     endTime = time.clock()
     # final commit
     if save:
-        saveSea(aSea)
+        saveSea(aSea, tick)
 
     # print final message
     hours, remainingSeconds = divmod(endTime-startTime, 3600)
