@@ -24,9 +24,10 @@ class SeaCreature(object):
         self.sea = sea
         self.pos = pos
         self.traditional = traditional
-        self.age = random.randint(0, spawnAge - 1)
+        self.age = 0
+        self.totalAge = self.age
         self.spawnAge = spawnAge
-        self.starve = random.randint(0, starveAge - 1)
+        self.starve = 0
         self.starveAge = starveAge # set but not used by basic creature
         self.alive = True
         self.random = random
@@ -76,6 +77,7 @@ class SeaCreature(object):
         """
         if self.alive:
             self.age += 1
+            self.totalAge += 1
             empty, occupied = self.pos.getAdjacent(self.traditional)
             if len(empty) > 0:
                 if not self.spawn(empty):
@@ -83,6 +85,7 @@ class SeaCreature(object):
 
     def setAge(self,age):
         self.age = age
+        self.totalAge = age
 
     def setStarve(self,starve):
         self.starve = starve
@@ -128,6 +131,7 @@ class Shark(SeaCreature):
         """
         if self.alive:
             self.age += 1
+            self.totalAge += 1
             self.starve += 1
             if self.starve > self.starveAge:
                 self.died()
@@ -148,7 +152,7 @@ class Shark(SeaCreature):
         return [type(self)] + SeaCreature.exportCreature(self)
 
     def __str__(self):
-        return "%s %s Alive: %s" % ('Shark', SeaCreature.__str__(self), str(self.alive), self.age, self.starve)
+        return "%s %s Alive: %s Age: %d Spawn: %d Starve: %d" % ('Shark', SeaCreature.__str__(self), str(self.alive), self.totalAge, self.spawnAge-self.age, self.starveAge-self.starve)
 
 class Fish(SeaCreature):
     """
@@ -161,5 +165,4 @@ class Fish(SeaCreature):
         return [type(self)] + SeaCreature.exportCreature(self)
 
     def __str__(self):
-        return "%s %s Alive: %s  Age: %d" % ('Fish', SeaCreature.__str__(self), str(self.alive), self.age)
-
+        return "%s %s Alive: %s Age: %d Spawn: %d Starve: %d" % ('Fish', SeaCreature.__str__(self), str(self.alive), self.totalAge, self.spawnAge-self.age, self.starveAge-self.starve)

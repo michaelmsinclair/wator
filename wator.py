@@ -115,12 +115,6 @@ def generateSea(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
     if (s+f) > x*y:
         print('Too many creatures')
         exit(2)
-#    # check the number of chronons to run.
-#    # 999,999 is over 11 hours at 24fps, and most likely far beyond.
-#    # the storage space.
-#    if chronons < 1 or chronons > 999999:
-#        print("Chronons must be in range 1 - 999999")
-#        quit(3)
 
     # check sharkspawn
     if sharkspawn < 1:
@@ -144,7 +138,10 @@ def generateSea(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
         while noCell:
             xS = random.randint(0,x-1)
             yS = random.randint(0,y-1)
-            if aSea.addCreature(xS,yS,Shark,traditional,sharkspawn,sharkstarve) != None:
+            newShark = aSea.addCreature(xS,yS,Shark,traditional,sharkspawn,sharkstarve)
+            if newShark != None:
+                newShark.setAge(random.randint(0, sharkspawn - 1))
+                newShark.setStarve(random.randint(0, sharkstarve - 1))
                 noCell = False
 
     for fish in range(f):
@@ -152,7 +149,9 @@ def generateSea(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
         while noCell:
             xF = random.randint(0,x-1)
             yF = random.randint(0,y-1)
-            if aSea.addCreature(xF,yF,Fish,traditional,fishspawn) != None:
+            newFish = aSea.addCreature(xF,yF,Fish,traditional,fishspawn)
+            if newFish != None:
+                newFish.setAge(random.randint(0, fishspawn - 1))
                 noCell = False
     
     return aSea
@@ -202,6 +201,14 @@ def command_line():
                         default=200)
     # get the arguments
     args = parser.parse_args()
+    
+    # check the number of chronons to run.
+    # 999,999 is over 11 hours at 24fps, and most likely far beyond.
+    # the storage space.
+    if args.chronons < 1 or args.chronons > 999999:
+        print("Chronons must be in range 1 - 999999")
+        quit(3)
+    
     # calculate the size of the sea
     total_cells = args.x * args.y
     
@@ -246,6 +253,12 @@ def run_simulation(aSea, chronons, save, commit, firstChronon=0):
         tick += 1
         print("Chronon: %06d Turn: %3.4f Display: %3.4f %s"
               % (tick,elapsedTurn,elapsedDisp,aSea) )
+        for c in aSea.creatures:
+            creature = aSea.creatures[c]
+            print("Chronon: %06d %010d %s" % (tick, c, creature))
+#            if type(creature) is Shark:
+#                print("Chronon: %06d %010d %s" % (tick, c, creature))
+
     endTime = time.clock()
     # final commit
     if save:
