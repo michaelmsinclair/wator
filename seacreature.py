@@ -113,8 +113,7 @@ class Shark(SeaCreature):
     """
     def __init__(self, sea, pos, traditional, spawnAge, starveAge, random):
         SeaCreature.__init__(self, sea, pos, traditional, spawnAge, starveAge, random)
-        self.colors = [0xFFFF00, 0xFF8C00, 0xFFA500, 0xFF4500, 0xFF0000, 0x8B0000]
-        self.color = self.colors[0]
+        self.color = 0xFF0000
         
     def eat(self,occupied):
         """
@@ -149,7 +148,6 @@ class Shark(SeaCreature):
             if self.starve > self.starveAge:
                 self.died()
             else:
-                self.color = self.colors[self.age % len(self.colors)]
                 spawnX, spawnY = self.pos.getSeaPosition()
                 empty, occupied = self.pos.getAdjacent(self.traditional)
                 if len(occupied) > 0:
