@@ -21,6 +21,7 @@ class SeaCreature(object):
         """
         Simple creature, reproduces quickly, does not eat, and never dies except if eaten.
         """
+        self.color = 0x000000  # each creature has a color
         self.sea = sea
         self.pos = pos
         self.traditional = traditional
@@ -38,6 +39,12 @@ class SeaCreature(object):
     def setPosition(self, pos):
         self.pos = pos
 
+    def getColor(self):
+        return self.color
+
+    def setColor(self, color):
+        self.color = color
+    
     def isAlive(self):
         return self.alive
 
@@ -85,16 +92,20 @@ class SeaCreature(object):
 
     def setAge(self,age):
         self.age = age
+
+    def setTotalAge(self,age):
         self.totalAge = age
 
     def setStarve(self,starve):
         self.starve = starve
 
     def exportCreature(self):
-        return [self.pos.getX(), self.pos.getY(), self.traditional, self.spawnAge, self.starveAge, self.alive, self.age, self.starve]
+        return [self.pos.getX(), self.pos.getY(), self.traditional, self.spawnAge, self.starveAge, self.alive, self.totalAge, self.age, self.starve]
 
     def __str__(self):
-        return "%s" % str(self.pos)
+        [x, y, t, spawnAge, starveAge, alive, totalAge, age, starve] = SeaCreature.exportCreature(self)
+        return "(%d, %d) Alive: %s Age: %d Spawn in: %d Starve in: %d" % (x, y, str(alive), totalAge, spawnAge-age, starveAge-starve)
+
 
 class Shark(SeaCreature):
     """
@@ -102,7 +113,9 @@ class Shark(SeaCreature):
     """
     def __init__(self, sea, pos, traditional, spawnAge, starveAge, random):
         SeaCreature.__init__(self, sea, pos, traditional, spawnAge, starveAge, random)
-
+        self.colors = [0xFFFF00, 0xFF8C00, 0xFFA500, 0xFF4500, 0xFF0000, 0x8B0000]
+        self.color = self.colors[0]
+        
     def eat(self,occupied):
         """
         Either find something to eat, or move (randomly) to a free adjacent spot.
@@ -136,6 +149,7 @@ class Shark(SeaCreature):
             if self.starve > self.starveAge:
                 self.died()
             else:
+                self.color = self.colors[self.age % len(self.colors)]
                 spawnX, spawnY = self.pos.getSeaPosition()
                 empty, occupied = self.pos.getAdjacent(self.traditional)
                 if len(occupied) > 0:
@@ -152,7 +166,7 @@ class Shark(SeaCreature):
         return [type(self)] + SeaCreature.exportCreature(self)
 
     def __str__(self):
-        return "%s %s Alive: %s Age: %d Spawn: %d Starve: %d" % ('Shark', SeaCreature.__str__(self), str(self.alive), self.totalAge, self.spawnAge-self.age, self.starveAge-self.starve)
+        return "%s %s" % ('Shark', SeaCreature.__str__(self))
 
 class Fish(SeaCreature):
     """
@@ -160,9 +174,10 @@ class Fish(SeaCreature):
     """
     def __init__(self, sea, pos, traditional, spawnAge, starveAge, random):
         SeaCreature.__init__(self, sea, pos, traditional, spawnAge, starveAge, random)
+        self.color = 0x00ff00
 
     def exportCreature(self):
         return [type(self)] + SeaCreature.exportCreature(self)
 
     def __str__(self):
-        return "%s %s Alive: %s Age: %d Spawn: %d Starve: %d" % ('Fish', SeaCreature.__str__(self), str(self.alive), self.totalAge, self.spawnAge-self.age, self.starveAge-self.starve)
+        return "%s %s" % ('Fish', SeaCreature.__str__(self))

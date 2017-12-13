@@ -18,6 +18,7 @@ import time
 import pickle
 
 from sea import *
+from seadisplay import *
 
 def wator():
     import random
@@ -38,13 +39,15 @@ def wator():
     # restore, or start new
     chronon = 0
     if args.Restore:
-        [aSea, chronon] = restoreSea(random)
+        [aSea, aSeaView, chronon] = restoreSea(random)
         args.Save = True # if restored, implies that commits need to continue.
     else:
         aSea = generateSea(args.x, args.y, args.sharks, args.fishes, args.traditional, args.sharkspawn, args.sharkstarve, args.fishspawn, random)
+        aSeaView = SeaDisplay(args.x, args.y)
+
         
     # run the simulation
-    run_simulation(aSea, args.chronons, args.Save, args.Commit, chronon)
+    run_simulation(aSea, aSeaView, args.chronons, args.Save, args.Commit, chronon)
 
 def restoreSea(random,save_s="commits/save_sea.p",save_c="commits/save_creatures.p"):
     """
@@ -54,7 +57,7 @@ def restoreSea(random,save_s="commits/save_sea.p",save_c="commits/save_creatures
         [x, y, creatureTag, fileNumber, chronon] = pickle.load(open(save_s, "rb" ))
         theSea = Sea(x, y, random)
         theSea.setCreatureTag(creatureTag)
-        theSea.setFileNumber(fileNumber)
+        theDisplay = SeaDisplay(x, y, fileNumber)
     except FileNotFoundError:
         print("Restore file save_sea.p not found")
         exit(3)
@@ -63,15 +66,16 @@ def restoreSea(random,save_s="commits/save_sea.p",save_c="commits/save_creatures
     
     # using a generator, so that creatures can be iterated
     try:
-        for [creature, x, y, traditional, spawnAge, starveAge, alive, age, starve] in readCreatures(save_c):
-            c = theSea.addCreature(x,y,creature,traditional,spawnAge,starveAge)
+        for [ID, creature, x, y, traditional, spawnAge, starveAge, alive, totalage, age, starve] in readCreatures(save_c):
+            c = theSea.addCreature(x,y,creature,traditional,spawnAge,starveAge, ID)
             if c != None:
                 c.setAge(age)
+                c.setTotalAge(totalage)
                 c.setStarve(starve)
     except Exception as f:
         print('f', repr(f))
 
-    return [theSea, chronon]
+    return [theSea, theDisplay, chronon]
 
 def readCreatures(pickleFile):
         try:
@@ -84,17 +88,17 @@ def readCreatures(pickleFile):
         except EOFError:
             pass
         
-def saveSea(saveSea, chronon,save_s="commits/save_sea.p",save_c="commits/save_creatures.p"):
+def saveSea(saveSea, saveDisplay, chronon,save_s="commits/save_sea.p",save_c="commits/save_creatures.p"):
     """
     Save sea and creatures for later restore.
     """
     seaFH  = open(save_s, "wb")
-    pickle.dump(saveSea.exportSea() + [chronon], seaFH)
+    pickle.dump(saveSea.exportSea() + saveDisplay.exportDisplay() + [chronon], seaFH)
     seaFH.close()
     
     creatureFH = open(save_c, "wb")
-    for c in saveSea.creatures.values():
-        pickle.dump(c.exportCreature(), creatureFH)
+    for c in saveSea.creatures:
+        pickle.dump([c] + saveSea.creatures[c].exportCreature(), creatureFH)
     creatureFH.close()    
 
         
@@ -140,7 +144,9 @@ def generateSea(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
             yS = random.randint(0,y-1)
             newShark = aSea.addCreature(xS,yS,Shark,traditional,sharkspawn,sharkstarve)
             if newShark != None:
-                newShark.setAge(random.randint(0, sharkspawn - 1))
+                sharkAge = random.randint(0, sharkspawn - 1)
+                newShark.setAge(sharkAge)
+                newShark.setTotalAge(sharkAge)
                 newShark.setStarve(random.randint(0, sharkstarve - 1))
                 noCell = False
 
@@ -151,7 +157,9 @@ def generateSea(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
             yF = random.randint(0,y-1)
             newFish = aSea.addCreature(xF,yF,Fish,traditional,fishspawn)
             if newFish != None:
-                newFish.setAge(random.randint(0, fishspawn - 1))
+                fishAge = random.randint(0, sharkspawn - 1)
+                newFish.setAge(fishAge)
+                newFish.setTotalAge(fishAge)
                 noCell = False
     
     return aSea
@@ -224,7 +232,7 @@ def command_line():
     return args    
     
 
-def run_simulation(aSea, chronons, save, commit, firstChronon=0):
+def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0):
     """
     aSea = sea containing all creatures.
     chronons = maximum number of chronons to run.
@@ -245,24 +253,25 @@ def run_simulation(aSea, chronons, save, commit, firstChronon=0):
         aSea.cleanCreatures()
         elapsedTurn = time.clock() - before
         before = time.clock()
-        aSea.display()
+        seaView.showImage(aSea,True)
+#        seaView.showImage(aSea)
         elapsedDisp = time.clock() - before
         if save:
             if tick % commit == 0:
-                saveSea(aSea, tick)
+                saveSea(aSea, seaView, tick)
         tick += 1
         print("Chronon: %06d Turn: %3.4f Display: %3.4f %s"
               % (tick,elapsedTurn,elapsedDisp,aSea) )
-        for c in aSea.creatures:
-            creature = aSea.creatures[c]
-            print("Chronon: %06d %010d %s" % (tick, c, creature))
-#            if type(creature) is Shark:
-#                print("Chronon: %06d %010d %s" % (tick, c, creature))
+#        for c in aSea.creatures:
+#            creature = aSea.creatures[c]
+#            print("Chronon: %06d %010d %s" % (tick, c, creature))
+##            if type(creature) is Shark:
+##                print("Chronon: %06d %010d %s" % (tick, c, creature))
 
     endTime = time.clock()
     # final commit
     if save:
-        saveSea(aSea, tick)
+        saveSea(aSea, seaView, tick)
 
     # print final message
     hours, remainingSeconds = divmod(endTime-startTime, 3600)

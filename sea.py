@@ -28,13 +28,11 @@ class Sea(object):
         """
         Initialize an empty sea.
         """
-        self.fileNumber = 0
         self.creatures = {}
         self.creatureTag = 0
         self.maxX = x
         self.maxY = y
         self.sea = [[ None for Y in range(self.maxY)] for X in range(self.maxX)]
-        self.screen = pygame.display.set_mode((x,y))
         self.sharks = 0
         self.fishes = 0
         self.random = random
@@ -88,16 +86,13 @@ class Sea(object):
 
         self.sea[x][y] = None
 
-    def getSea(self):
-        return self.sea
-
     def getSharks(self):
         return self.sharks
 
     def getFishes(self):
         return self.fishes
 
-    def addCreature(self, x, y, newCreature, t, spawn, starve=99):
+    def addCreature(self, x, y, newCreature, t, spawn, starve=99, tag=-1):
         """
         If creature can be added to sea, add it to the list of creatures
         Return the creature if added, None otherwise
@@ -106,8 +101,11 @@ class Sea(object):
             pos = SeaPosition(x,y,self)
             creature = newCreature(self, pos, t, spawn, starve, self.random)
             self.setCell(x,y, creature)
-            self.creatures[self.creatureTag] = creature
-            self.creatureTag += 1
+            if tag == -1:
+                self.creatures[self.creatureTag] = creature
+                self.creatureTag += 1
+            else:
+                self.creatures[tag] = creature
             if type(creature) is Shark:
                 self.sharks += 1
             elif type(creature) is Fish:
@@ -136,31 +134,8 @@ class Sea(object):
 
         self.creatures = aliveCreatures
 
-    def display(self):
-        """
-        Show the sharks, fishes, empty sea as a red, green, or blue pixel, respectively.
-        Save each screen as a png file.
-        """
-        screenArray = numpy.zeros((self.maxX,self.maxY))
-        for y in range(self.maxY-1,-1,-1):
-            for x in range(self.maxX):
-                c = self.getCell(x,y)
-                if type(c) is Shark:
-                    screenArray[x][y] = 0xff0000
-                elif type(c) is Fish:
-                    screenArray[x][y] = 0x00ff00
-                else:
-                    screenArray[x][y] = 0x0000ff
-        pygame.surfarray.blit_array(self.screen, screenArray)
-        pygame.display.flip()
-        pygame.image.save(self.screen, ("images/wator_%06d.png" % self.fileNumber))
-        self.fileNumber += 1
-
     def exportSea(self):
-        return [self.maxX,self.maxY,self.creatureTag,self.fileNumber]
-
-    def setFileNumber(self, fileNumber):
-        self.fileNumber = fileNumber
+        return [self.maxX,self.maxY,self.creatureTag]
 
     def setCreatureTag(self, creatureTag):
         self.creatureTag = creatureTag
