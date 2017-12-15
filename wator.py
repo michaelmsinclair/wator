@@ -43,7 +43,7 @@ def wator():
         args.Save = True # if restored, implies that commits need to continue.
     else:
         aSea = generateSea(args.x, args.y, args.sharks, args.fishes, args.traditional, args.sharkspawn, args.sharkstarve, args.fishspawn, random)
-        aSeaView = SeaDisplay(args.x, args.y)
+        aSeaView = SeaDisplay(aSea)
 
         
     # run the simulation
@@ -53,27 +53,33 @@ def restoreSea(random,save_s="commits/save_sea.p",save_c="commits/save_creatures
     """
     Restore from the file.
     """
+    nextid = 0
     try:
-        [x, y, creatureTag, fileNumber, chronon] = pickle.load(open(save_s, "rb" ))
+        [x, y, lastid, fileNumber, chronon] = pickle.load(open(save_s, "rb" ))
         theSea = Sea(x, y, random)
-        theSea.setCreatureTag(creatureTag)
-        theDisplay = SeaDisplay(x, y, fileNumber)
+        theDisplay = SeaDisplay(theSea, fileNumber)
+        nextid = lastid
     except FileNotFoundError:
-        print("Restore file save_sea.p not found")
+        print("Restore file", save_s, "not found")
         exit(3)
-    except Exception as e:
-        print(repr(e))
-    
+    except Exception as A:
+        print("Restore Failure A:", repr(A))
+
     # using a generator, so that creatures can be iterated
     try:
-        for [ID, creature, x, y, traditional, spawnAge, starveAge, alive, totalage, age, starve] in readCreatures(save_c):
-            c = theSea.addCreature(x,y,creature,traditional,spawnAge,starveAge, ID)
+        for [creature, ID, parent, x, y, traditional, spawnAge, starveAge, alive, totalage, age, starve] in readCreatures(save_c):
+            c = theSea.addCreature(x,y,creature,traditional,spawnAge,parent,starveAge)
             if c != None:
                 c.setAge(age)
                 c.setTotalAge(totalage)
                 c.setStarve(starve)
-    except Exception as f:
-        print('f', repr(f))
+                c.setCreatureID(ID)
+                c.setNextID(nextid)
+    except FileNotFoundError:
+        print("Restore file", save_c, "not found")
+        exit(3)
+    except Exception as B:
+        print("Restore Failure B:", repr(B))
 
     return [theSea, theDisplay, chronon]
 
@@ -93,12 +99,12 @@ def saveSea(saveSea, saveDisplay, chronon,save_s="commits/save_sea.p",save_c="co
     Save sea and creatures for later restore.
     """
     seaFH  = open(save_s, "wb")
-    pickle.dump(saveSea.exportSea() + saveDisplay.exportDisplay() + [chronon], seaFH)
+    pickle.dump(saveSea.exportSea() + [saveSea.creatures[0].getNextID()] + saveDisplay.exportDisplay() + [chronon], seaFH)
     seaFH.close()
     
     creatureFH = open(save_c, "wb")
     for c in saveSea.creatures:
-        pickle.dump([c] + saveSea.creatures[c].exportCreature(), creatureFH)
+        pickle.dump(c.exportCreature(), creatureFH)
     creatureFH.close()    
 
         
@@ -137,12 +143,13 @@ def generateSea(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
 
     aSea = Sea(x,y,random)
 
+    defaultParent = 0
     for shark in range(s):
         noCell = True
         while noCell:
             xS = random.randint(0,x-1)
             yS = random.randint(0,y-1)
-            newShark = aSea.addCreature(xS,yS,Shark,traditional,sharkspawn,sharkstarve)
+            newShark = aSea.addCreature(xS,yS,Shark,traditional,sharkspawn, defaultParent, sharkstarve)
             if newShark != None:
                 sharkAge = random.randint(0, sharkspawn - 1)
                 newShark.setAge(sharkAge)
@@ -155,7 +162,7 @@ def generateSea(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
         while noCell:
             xF = random.randint(0,x-1)
             yF = random.randint(0,y-1)
-            newFish = aSea.addCreature(xF,yF,Fish,traditional,fishspawn)
+            newFish = aSea.addCreature(xF,yF,Fish,traditional,fishspawn, defaultParent)
             if newFish != None:
                 fishAge = random.randint(0, sharkspawn - 1)
                 newFish.setAge(fishAge)
@@ -223,9 +230,9 @@ def command_line():
     # check the number of chronons to run.
     # 999,999 is over 11 hours at 24fps, and most likely far beyond.
     # the storage space.
-    if args.verbose > 2:
-        print("Warning: verbosity can only be set to -vv, --verbose --verbose")
-        args.verbose = 2
+    if args.verbose > 3:
+        print("Warning: verbosity can only be set to -vvv, or --verbose --verbose --verbose")
+        args.verbose = 3
     
     # calculate the size of the sea
     total_cells = args.x * args.y
@@ -258,13 +265,12 @@ def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0, verbos
     while tick < firstChronon+chronons and aSea.getSharks() != 0 and aSea.getFishes() != 0:  # in range(200):
         before = time.clock()
         theCreatures = aSea.creatures.copy()
-        for c in theCreatures.values():
+        for c in theCreatures:
             c.turn()
         aSea.cleanCreatures()
         elapsedTurn = time.clock() - before
         before = time.clock()
         seaView.showImage(aSea,True)
-#        seaView.showImage(aSea)
         elapsedDisp = time.clock() - before
         if save:
             if tick % commit == 0:
@@ -273,10 +279,27 @@ def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0, verbos
         if verbosity > 0:
             print("Chronon: %06d Turn: %3.4f Display: %3.4f %s"
                   % (tick,elapsedTurn,elapsedDisp,aSea) )
-        if verbosity == 2:
-            for c in aSea.creatures:
-                creature = aSea.creatures[c]
-                print("Chronon: %06d %010d %s" % (tick, c, creature))
+        if verbosity > 1:
+            verbalSharks = {}
+            verbalFishes = {}
+            for creature in aSea.creatures:
+                if type(creature) is Shark:
+                    try:
+                        verbalSharks[creature.getAge()] += 1
+                    except:
+                        verbalSharks[creature.getAge()] = 1
+                elif type(creature) is Fish:
+                    try:
+                        verbalFishes[creature.getAge()] += 1
+                    except:
+                        verbalFishes[creature.getAge()] = 1
+            for summary in sorted(verbalSharks):                        
+                print("Chronon: %06d Shark Age: %d Count: %d" % (tick, summary, verbalSharks[summary]))
+            for summary in sorted(verbalFishes):                        
+                print("Chronon: %06d Fish Age: %d Count: %d" % (tick, summary, verbalFishes[summary]))
+        if verbosity > 2:
+            for creature in aSea.creatures:
+                print("Chronon: %06d %s" % (tick, creature))
 
     endTime = time.clock()
     # final commit

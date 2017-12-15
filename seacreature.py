@@ -17,7 +17,8 @@ class SeaCreature(object):
     """
     Super class of all sea creatures.
     """
-    def __init__(self, sea, pos, traditional, spawnAge, starveAge, random):
+    nextID = 1
+    def __init__(self, sea, pos, traditional, spawnAge, starveAge, random, parent):
         """
         Simple creature, reproduces quickly, does not eat, and never dies except if eaten.
         """
@@ -32,12 +33,24 @@ class SeaCreature(object):
         self.starveAge = starveAge # set but not used by basic creature
         self.alive = True
         self.random = random
+        self.creatureID = SeaCreature.nextID
+        SeaCreature.nextID += 1
+        self.parent = parent
 
     def getPosition(self):
         return self.pos
 
     def setPosition(self, pos):
         self.pos = pos
+
+    def setCreatureID(self, creatureid):
+        self.creatureID = creatureid
+
+    def setNextID(self, nextid):
+        SeaCreature.nextID = nextid
+
+    def getNextID(self):
+        return SeaCreature.nextID
 
     def getColor(self):
         return self.color
@@ -47,6 +60,9 @@ class SeaCreature(object):
     
     def isAlive(self):
         return self.alive
+    
+    def getAge(self):
+        return self.age
 
     def died(self):
         """
@@ -62,7 +78,7 @@ class SeaCreature(object):
         """
         if self.age >= self.spawnAge:
             spawnX, spawnY = self.random.choice(free)
-            self.sea.addCreature(spawnX, spawnY, type(self), self.traditional, self.spawnAge, self.starveAge)
+            self.sea.addCreature(spawnX, spawnY, type(self), self.traditional, self.spawnAge, self.creatureID, self.starveAge)
             self.age = 0
             return True
         else:
@@ -100,19 +116,19 @@ class SeaCreature(object):
         self.starve = starve
 
     def exportCreature(self):
-        return [self.pos.getX(), self.pos.getY(), self.traditional, self.spawnAge, self.starveAge, self.alive, self.totalAge, self.age, self.starve]
+        return [self.creatureID, self.parent, self.pos.getX(), self.pos.getY(), self.traditional, self.spawnAge, self.starveAge, self.alive, self.totalAge, self.age, self.starve]
 
     def __str__(self):
-        [x, y, t, spawnAge, starveAge, alive, totalAge, age, starve] = SeaCreature.exportCreature(self)
-        return "(%d, %d) Alive: %s Age: %d Spawn in: %d Starve in: %d" % (x, y, str(alive), totalAge, spawnAge-age, starveAge-starve)
+        [ID, parent, x, y, t, spawnAge, starveAge, alive, totalAge, age, starve] = SeaCreature.exportCreature(self)
+        return "%010d Parent: %010d (%d,%d) Alive: %s Age: %d Spawn in: %d Starve in: %d" % (ID, parent, x, y, str(alive), totalAge, spawnAge-age, starveAge-starve)
 
 
 class Shark(SeaCreature):
     """
     Extend a regular sea creature to hunt and eat - be a shark
     """
-    def __init__(self, sea, pos, traditional, spawnAge, starveAge, random):
-        SeaCreature.__init__(self, sea, pos, traditional, spawnAge, starveAge, random)
+    def __init__(self, sea, pos, traditional, spawnAge, starveAge, random, parent):
+        SeaCreature.__init__(self, sea, pos, traditional, spawnAge, starveAge, random, parent)
         self.color = 0xFF0000
         
     def eat(self,occupied):
@@ -170,8 +186,8 @@ class Fish(SeaCreature):
     """
     Extend sea creature, and identify it as a fish. 
     """
-    def __init__(self, sea, pos, traditional, spawnAge, starveAge, random):
-        SeaCreature.__init__(self, sea, pos, traditional, spawnAge, starveAge, random)
+    def __init__(self, sea, pos, traditional, spawnAge, starveAge, random, parent):
+        SeaCreature.__init__(self, sea, pos, traditional, spawnAge, starveAge, random, parent)
         self.color = 0x00ff00
 
     def exportCreature(self):

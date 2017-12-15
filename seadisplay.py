@@ -16,23 +16,30 @@ class SeaDisplay(object):
     Display the sea of x by y cells.
     Each cell can hold one thing or be empty (None).
     """
-    def __init__(self, x, y, filenumber=0):
+    def __init__(self, sea, filenumber=0):
         """
         Initialize screen
         """
-        self.maxX = x
-        self.maxY = y
+        self.sea = sea
+        self.maxX = sea.getMaxX()
+        self.maxY = sea.getMaxY()
         self.fileNumber = filenumber
-        self.screen = self.initScreen(x,y)
+        self.screen = self.initScreen()
         self.seaColor = 0x0000ff
 
-    def initScreen(self, x, y):
+    def initScreen(self):
         """
         Create a screen with dimensions x, y.
         Return the screen.
         Allows addition of new characteristics.
         """
-        return pygame.display.set_mode((x,y))
+        return pygame.display.set_mode((self.maxX, self.maxY))
+
+    def setMaxX(self, x):
+        self.maxX = x
+
+    def setMaxY(self, y):
+        self.maxY = y
 
     def setFileNumber(self, fileNumber):
         self.fileNumber = fileNumber
@@ -43,7 +50,12 @@ class SeaDisplay(object):
         sea = array[x,y] of creatures.
         save = write to file if True (save as png).
         """
-        
+
+        if self.maxX != sea.getMaxX() or self.maxY != sea.getMaxY():
+            self.setMaxX(sea.getMaxX())
+            self.setMaxY(sea.getMaxY())
+            self.screen = self.initScreen()
+            
         screenArray = numpy.zeros((self.maxX,self.maxY))
         for y in range(self.maxY-1,-1,-1):
             for x in range(self.maxX):
