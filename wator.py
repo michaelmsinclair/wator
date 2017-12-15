@@ -47,7 +47,7 @@ def wator():
 
         
     # run the simulation
-    run_simulation(aSea, aSeaView, args.chronons, args.Save, args.Commit, chronon)
+    run_simulation(aSea, aSeaView, args.chronons, args.Save, args.Commit, chronon, args.verbose)
 
 def restoreSea(random,save_s="commits/save_sea.p",save_c="commits/save_creatures.p"):
     """
@@ -201,6 +201,9 @@ def command_line():
     parser.add_argument("-t", "--traditional", action="store_true",
                         help="traditional search pattern",
                         default=False)
+    parser.add_argument("-v", "--verbose", action="count",
+                        help="-v creature summary per chronon, -vv all creatures per chronon",
+                        default=False)
     parser.add_argument("-x", type=int,
                         help="number of horizontal cells, default 200",
                         default=200)
@@ -216,6 +219,13 @@ def command_line():
     if args.chronons < 1 or args.chronons > 999999:
         print("Chronons must be in range 1 - 999999")
         quit(3)
+
+    # check the number of chronons to run.
+    # 999,999 is over 11 hours at 24fps, and most likely far beyond.
+    # the storage space.
+    if args.verbose > 2:
+        print("Warning: verbosity can only be set to -vv, --verbose --verbose")
+        args.verbose = 2
     
     # calculate the size of the sea
     total_cells = args.x * args.y
@@ -232,7 +242,7 @@ def command_line():
     return args    
     
 
-def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0):
+def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0, verbosity=0):
     """
     aSea = sea containing all creatures.
     chronons = maximum number of chronons to run.
@@ -260,13 +270,13 @@ def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0):
             if tick % commit == 0:
                 saveSea(aSea, seaView, tick)
         tick += 1
-        print("Chronon: %06d Turn: %3.4f Display: %3.4f %s"
-              % (tick,elapsedTurn,elapsedDisp,aSea) )
-#        for c in aSea.creatures:
-#            creature = aSea.creatures[c]
-#            print("Chronon: %06d %010d %s" % (tick, c, creature))
-##            if type(creature) is Shark:
-##                print("Chronon: %06d %010d %s" % (tick, c, creature))
+        if verbosity > 0:
+            print("Chronon: %06d Turn: %3.4f Display: %3.4f %s"
+                  % (tick,elapsedTurn,elapsedDisp,aSea) )
+        if verbosity == 2:
+            for c in aSea.creatures:
+                creature = aSea.creatures[c]
+                print("Chronon: %06d %010d %s" % (tick, c, creature))
 
     endTime = time.clock()
     # final commit
