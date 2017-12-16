@@ -164,7 +164,7 @@ def generateSea(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
             yF = random.randint(0,y-1)
             newFish = aSea.addCreature(xF,yF,Fish,traditional,fishspawn, defaultParent)
             if newFish != None:
-                fishAge = random.randint(0, sharkspawn - 1)
+                fishAge = random.randint(0, fishspawn - 1)
                 newFish.setAge(fishAge)
                 newFish.setTotalAge(fishAge)
                 noCell = False
