@@ -230,9 +230,9 @@ def command_line():
     # check the number of chronons to run.
     # 999,999 is over 11 hours at 24fps, and most likely far beyond.
     # the storage space.
-    if args.verbose > 3:
-        print("Warning: verbosity can only be set to -vvv, or --verbose --verbose --verbose")
-        args.verbose = 3
+    if args.verbose > 4:
+        print("Warning: verbosity can only be set to -vvvv, or --verbose --verbose --verbose --verbose")
+        args.verbose = 4
     
     # calculate the size of the sea
     total_cells = args.x * args.y
@@ -281,23 +281,25 @@ def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0, verbos
                   % (tick,elapsedTurn,elapsedDisp,aSea) )
         if verbosity > 1:
             verbalSharks = {}
-            verbalFishes = {}
             for creature in aSea.creatures:
                 if type(creature) is Shark:
                     try:
                         verbalSharks[creature.getAge()] += 1
                     except:
                         verbalSharks[creature.getAge()] = 1
-                elif type(creature) is Fish:
+            for summary in sorted(verbalSharks):                        
+                print("Chronon: %06d Shark Age: %d Count: %d" % (tick, summary, verbalSharks[summary]))
+        if verbosity > 2:
+            verbalFishes = {}
+            for creature in aSea.creatures:
+                if type(creature) is Fish:
                     try:
                         verbalFishes[creature.getAge()] += 1
                     except:
                         verbalFishes[creature.getAge()] = 1
-            for summary in sorted(verbalSharks):                        
-                print("Chronon: %06d Shark Age: %d Count: %d" % (tick, summary, verbalSharks[summary]))
             for summary in sorted(verbalFishes):                        
                 print("Chronon: %06d Fish Age: %d Count: %d" % (tick, summary, verbalFishes[summary]))
-        if verbosity > 2:
+        if verbosity > 3:
             for creature in aSea.creatures:
                 print("Chronon: %06d %s" % (tick, creature))
 
