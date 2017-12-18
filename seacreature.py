@@ -77,10 +77,13 @@ class SeaCreature(object):
         If old enough, and there is free space, spawn.
         """
         if self.age >= self.spawnAge:
-            spawnX, spawnY = self.random.choice(free)
-            self.sea.addCreature(spawnX, spawnY, type(self), self.traditional, self.spawnAge, self.creatureID, self.starveAge)
-            self.age = 0
-            return True
+            if self.random.random() > 0.7: # attempt to smooth out sawtooth
+                spawnX, spawnY = self.random.choice(free)
+                self.sea.addCreature(spawnX, spawnY, type(self), self.traditional, self.spawnAge, self.creatureID, self.starveAge)
+                self.age = 0
+                return True
+            else:
+                return False
         else:
             return False
 
