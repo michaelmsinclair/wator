@@ -212,14 +212,23 @@ def command_line():
                         help="-v creature summary per chronon, -vv all creatures per chronon",
                         default=False)
     parser.add_argument("-x", type=int,
-                        help="number of horizontal cells, default 200",
-                        default=200)
+                        help="number of horizontal cells, default 160, range 20 - 320",
+                        default=160)
     parser.add_argument("-y", type=int,
-                        help="number of vertical cells, default 200",
-                        default=200)
+                        help="number of vertical cells, default 48, range 10 - 160",
+                        default=48)
     # get the arguments
     args = parser.parse_args()
     
+    # check the dimensions of the sea, 320x160 is the largest allowed.
+    if args.x < 20 or args.x > 320:
+        print("x must be in range 20 - 320")
+        quit(1)
+
+    if args.y < 10 or args.y > 160:
+        print("y must be in range 10 - 160")
+        quit(2)
+
     # check the number of chronons to run.
     # 999,999 is over 11 hours at 24fps, and most likely far beyond.
     # the storage space.
