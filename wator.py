@@ -262,7 +262,8 @@ def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0, verbos
 
     startTime = time.clock()
     tick = firstChronon
-    while tick < firstChronon+chronons and aSea.getSharks() != 0 and aSea.getFishes() != 0:  # in range(200):
+    simulating  = True
+    while simulating and tick < firstChronon+chronons and aSea.getSharks() != 0 and aSea.getFishes() != 0:  # in range(200):
         before = time.clock()
         theCreatures = aSea.creatures.copy()
         for c in theCreatures:
@@ -270,7 +271,7 @@ def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0, verbos
         aSea.cleanCreatures()
         elapsedTurn = time.clock() - before
         before = time.clock()
-        seaView.showImage(aSea,True)
+        simulating = seaView.showImage(aSea,True)
         elapsedDisp = time.clock() - before
         if save:
             if tick % commit == 0:
@@ -307,11 +308,13 @@ def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0, verbos
     # final commit
     if save:
         saveSea(aSea, seaView, tick)
-
+    
     # print final message
     hours, remainingSeconds = divmod(endTime-startTime, 3600)
     minutes, seconds = divmod(remainingSeconds, 60)
     print("END -:- Simulation complete after %d chronons. Ran for %d:%02d:%02d" % (tick, hours, minutes, seconds))
 
+    # terminate display
+    seaView.Quit()
 
 wator()
