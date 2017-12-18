@@ -28,8 +28,7 @@ class Sea(object):
         """
         Initialize an empty sea.
         """
-        self.creatures = {}
-        self.creatureTag = 0
+        self.creatures = []
         self.maxX = x
         self.maxY = y
         self.sea = [[ None for Y in range(self.maxY)] for X in range(self.maxX)]
@@ -92,20 +91,16 @@ class Sea(object):
     def getFishes(self):
         return self.fishes
 
-    def addCreature(self, x, y, newCreature, t, spawn, starve=99, tag=-1):
+    def addCreature(self, x, y, newCreature, t, spawn, parent, starve=99):
         """
         If creature can be added to sea, add it to the list of creatures
         Return the creature if added, None otherwise
         """
         if self.isCellEmpty(x, y):
             pos = SeaPosition(x,y,self)
-            creature = newCreature(self, pos, t, spawn, starve, self.random)
+            creature = newCreature(self, pos, t, spawn, starve, self.random, parent)
             self.setCell(x,y, creature)
-            if tag == -1:
-                self.creatures[self.creatureTag] = creature
-                self.creatureTag += 1
-            else:
-                self.creatures[tag] = creature
+            self.creatures.append(creature)
             if type(creature) is Shark:
                 self.sharks += 1
             elif type(creature) is Fish:
@@ -114,28 +109,25 @@ class Sea(object):
         else:
             return None
 
-    def getCreature(self, tag):
-        return self.creatures[tag]
-
     def cleanCreatures(self):
         """
         Remove the dead creatures from the dictionary of self.creatures.
         """
         self.sharks = 0
         self.fishes = 0
-        aliveCreatures = {}
+        aliveCreatures = []
         for c in self.creatures:
-            if self.creatures[c].isAlive():
-                aliveCreatures[c] = self.creatures[c]
-                if type(self.creatures[c]) is Shark:
+            if c.isAlive():
+                aliveCreatures.append(c)
+                if type(c) is Shark:
                     self.sharks += 1
-                elif type(self.creatures[c]) is Fish:
+                elif type(c) is Fish:
                     self.fishes += 1
 
         self.creatures = aliveCreatures
 
     def exportSea(self):
-        return [self.maxX,self.maxY,self.creatureTag]
+        return [self.maxX,self.maxY]
 
     def setCreatureTag(self, creatureTag):
         self.creatureTag = creatureTag
