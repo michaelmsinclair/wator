@@ -209,7 +209,7 @@ def command_line():
                         help="traditional search pattern",
                         default=False)
     parser.add_argument("-v", "--verbose", action="count",
-                        help="-v creature summary per chronon, -vv all creatures per chronon",
+                        help="-v chronon summary, -vv shark summary per chronon, -vvv fish summary per chronon -vvvv individual creature data per chronon",
                         default=False)
     parser.add_argument("-x", type=int,
                         help="number of horizontal cells, default 160, range 20 - 320",
