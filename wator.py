@@ -26,10 +26,10 @@ def wator():
     args = command_line()
 
     # set the RNG
-    if args.system:
-        random = random.SystemRandom()
+    if args.seed != 0:
+        random.seed(args.seed)
     else:
-        random.seed(42)
+        random = random.SystemRandom()
         
     # check --Commit > 0
     if args.Save:
@@ -196,15 +196,15 @@ def command_line():
     parser.add_argument("-s", "--sharks", type=int,
                         help="initial number of sharks, default 1/10 of the sea",
                         default=0)
+    parser.add_argument("--seed", type=int,
+                        help="seed with any value other than zero (0)",
+                        default=0)
     parser.add_argument("--sharkspawn", type=int,
                         help="age that a sharks spawns at, default 5, must be greater than 0",
                         default=5)
     parser.add_argument("--sharkstarve", type=int,
                         help="chronons that a shark can live without eating, default 3, must be greater than 0",
                         default=3)
-    parser.add_argument("--system", action="store_true",
-                        help="use SystemRandom giving unique runs, otherwise, default to a seed of 42",
-                        default=False)
     parser.add_argument("-t", "--traditional", action="store_true",
                         help="traditional search pattern",
                         default=False)
