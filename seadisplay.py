@@ -24,7 +24,10 @@ class SeaDisplay(object):
         self.maxX = sea.getMaxX()
         self.maxY = sea.getMaxY()
         self.fileNumber = filenumber
+        self.cellsize = 5
         self.screen = self.initScreen()
+        pygame.display.set_caption("Wa-Tor")
+
         self.seaColor = 0x0000ff
 
     def initScreen(self):
@@ -33,7 +36,7 @@ class SeaDisplay(object):
         Return the screen.
         Allows addition of new characteristics.
         """
-        return pygame.display.set_mode((self.maxX, self.maxY))
+        return pygame.display.set_mode((self.maxX*self.cellsize, self.maxY*self.cellsize))
 
     def setMaxX(self, x):
         self.maxX = x
@@ -50,6 +53,12 @@ class SeaDisplay(object):
         sea = array[x,y] of creatures.
         save = write to file if True (save as png).
         """
+        result = True
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                result = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pass
 
         if self.maxX != sea.getMaxX() or self.maxY != sea.getMaxY():
             self.setMaxX(sea.getMaxX())
@@ -65,11 +74,20 @@ class SeaDisplay(object):
                     if c.isAlive(): # an empty cell 
                         pixelColor = c.getColor()
                 screenArray[x][y] = pixelColor
-        pygame.surfarray.blit_array(self.screen, screenArray)
+                pygame.draw.rect(self.screen, pixelColor, 
+                    [self.cellsize * x, 
+                    self.cellsize * y, 
+                    self.cellsize, self.cellsize])
+#        pygame.surfarray.blit_array(self.screen, screenArray)
         pygame.display.flip()
         if save:
             pygame.image.save(self.screen, ("images/wator_%06d.png" % self.fileNumber))
         self.fileNumber += 1
+        
+        return result
+    
+    def Quit(self):
+        pygame.quit()
 
     def exportDisplay(self):
         return [self.fileNumber]

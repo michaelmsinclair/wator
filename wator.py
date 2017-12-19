@@ -26,10 +26,10 @@ def wator():
     args = command_line()
 
     # set the RNG
-    if args.system:
-        random = random.SystemRandom()
+    if args.seed != 0:
+        random.seed(args.seed)
     else:
-        random.seed(42)
+        random = random.SystemRandom()
         
     # check --Commit > 0
     if args.Save:
@@ -196,30 +196,39 @@ def command_line():
     parser.add_argument("-s", "--sharks", type=int,
                         help="initial number of sharks, default 1/10 of the sea",
                         default=0)
+    parser.add_argument("--seed", type=int,
+                        help="seed with any value other than zero (0)",
+                        default=0)
     parser.add_argument("--sharkspawn", type=int,
                         help="age that a sharks spawns at, default 5, must be greater than 0",
                         default=5)
     parser.add_argument("--sharkstarve", type=int,
                         help="chronons that a shark can live without eating, default 3, must be greater than 0",
                         default=3)
-    parser.add_argument("--system", action="store_true",
-                        help="use SystemRandom giving unique runs, otherwise, default to a seed of 42",
-                        default=False)
     parser.add_argument("-t", "--traditional", action="store_true",
                         help="traditional search pattern",
                         default=False)
     parser.add_argument("-v", "--verbose", action="count",
-                        help="-v creature summary per chronon, -vv all creatures per chronon",
+                        help="-v chronon summary, -vv shark summary per chronon, -vvv fish summary per chronon -vvvv individual creature data per chronon",
                         default=False)
     parser.add_argument("-x", type=int,
-                        help="number of horizontal cells, default 200",
-                        default=200)
+                        help="number of horizontal cells, default 160, range 20 - 320",
+                        default=160)
     parser.add_argument("-y", type=int,
-                        help="number of vertical cells, default 200",
-                        default=200)
+                        help="number of vertical cells, default 48, range 10 - 160",
+                        default=48)
     # get the arguments
     args = parser.parse_args()
     
+    # check the dimensions of the sea, 320x160 is the largest allowed.
+    if args.x < 20 or args.x > 320:
+        print("x must be in range 20 - 320")
+        quit(1)
+
+    if args.y < 10 or args.y > 160:
+        print("y must be in range 10 - 160")
+        quit(2)
+
     # check the number of chronons to run.
     # 999,999 is over 11 hours at 24fps, and most likely far beyond.
     # the storage space.
@@ -262,7 +271,8 @@ def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0, verbos
 
     startTime = time.clock()
     tick = firstChronon
-    while tick < firstChronon+chronons and aSea.getSharks() != 0 and aSea.getFishes() != 0:  # in range(200):
+    simulating  = True
+    while simulating and tick < firstChronon+chronons and aSea.getSharks() != 0 and aSea.getFishes() != 0:  # in range(200):
         before = time.clock()
         theCreatures = aSea.creatures.copy()
         for c in theCreatures:
@@ -270,7 +280,7 @@ def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0, verbos
         aSea.cleanCreatures()
         elapsedTurn = time.clock() - before
         before = time.clock()
-        seaView.showImage(aSea,True)
+        simulating = seaView.showImage(aSea,True)
         elapsedDisp = time.clock() - before
         if save:
             if tick % commit == 0:
@@ -307,11 +317,13 @@ def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0, verbos
     # final commit
     if save:
         saveSea(aSea, seaView, tick)
-
+    
     # print final message
     hours, remainingSeconds = divmod(endTime-startTime, 3600)
     minutes, seconds = divmod(remainingSeconds, 60)
     print("END -:- Simulation complete after %d chronons. Ran for %d:%02d:%02d" % (tick, hours, minutes, seconds))
 
+    # terminate display
+    seaView.Quit()
 
 wator()

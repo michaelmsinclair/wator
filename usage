@@ -1,7 +1,7 @@
 usage: wator.py [-h] [-c CHRONONS] [-C COMMIT] [-f FISHES]
-                [--fishspawn FISHSPAWN] [-R | -S] [-s SHARKS]
-                [--sharkspawn SHARKSPAWN] [--sharkstarve SHARKSTARVE]
-                [--system] [-t] [-x X] [-y Y]
+                [--fishspawn FISHSPAWN] [-R | -S] [-s SHARKS] [--seed SEED]
+                [--sharkspawn SHARKSPAWN] [--sharkstarve SHARKSTARVE] [-t]
+                [-v] [-x X] [-y Y]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -19,14 +19,17 @@ optional arguments:
   -S, --Save            save the sea at --Commit intervals
   -s SHARKS, --sharks SHARKS
                         initial number of sharks, default 1/10 of the sea
+  --seed SEED           seed with any value other than zero (0)
   --sharkspawn SHARKSPAWN
                         age that a sharks spawns at, default 5, must be
                         greater than 0
   --sharkstarve SHARKSTARVE
                         chronons that a shark can live without eating, default
                         3, must be greater than 0
-  --system              use SystemRandom giving unique runs, otherwise,
-                        default to a seed of 42
   -t, --traditional     traditional search pattern
-  -x X                  number of horizontal cells, default 200
-  -y Y                  number of vertical cells, default 200
+  -v, --verbose         -v chronon summary, -vv shark summary per chronon,
+                        -vvv fish summary per chronon -vvvv individual
+                        creature data per chronon
+  -x X                  number of horizontal cells, default 160, range 20 -
+                        320
+  -y Y                  number of vertical cells, default 48, range 10 - 160
