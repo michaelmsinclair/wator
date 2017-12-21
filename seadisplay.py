@@ -16,7 +16,7 @@ class SeaDisplay(object):
     Display the sea of x by y cells.
     Each cell can hold one thing or be empty (None).
     """
-    def __init__(self, sea, filenumber=0):
+    def __init__(self, sea, cellsize, filenumber=0):
         """
         Initialize screen
         """
@@ -24,7 +24,7 @@ class SeaDisplay(object):
         self.maxX = sea.getMaxX()
         self.maxY = sea.getMaxY()
         self.fileNumber = filenumber
-        self.cellsize = 5
+        self.cellsize = cellsize
         self.screen = self.initScreen()
         pygame.display.set_caption("Wa-Tor")
 
@@ -47,6 +47,9 @@ class SeaDisplay(object):
     def setFileNumber(self, fileNumber):
         self.fileNumber = fileNumber
 
+    def getCellSize(self):
+        return self.cellsize
+    
     def showImage(self, sea, save=False):
         """
         Show the sharks, fishes, empty sea as a red, green, or blue pixel, respectively.
@@ -90,4 +93,4 @@ class SeaDisplay(object):
         pygame.quit()
 
     def exportDisplay(self):
-        return [self.fileNumber]
+        return [self.fileNumber, self.cellsize]
