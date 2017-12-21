@@ -20,6 +20,9 @@ import pickle
 from sea import *
 from seadisplay import *
 
+xPixels = 1366
+yPixels = 768
+
 def wator():
     import random
     
@@ -43,7 +46,7 @@ def wator():
         args.Save = True # if restored, implies that commits need to continue.
     else:
         aSea = generateSea(args.x, args.y, args.sharks, args.fishes, args.traditional, args.sharkspawn, args.sharkstarve, args.fishspawn, random)
-        aSeaView = SeaDisplay(aSea)
+        aSeaView = SeaDisplay(aSea,args.cellsize)
 
         
     # run the simulation
@@ -55,9 +58,9 @@ def restoreSea(random,save_s="commits/save_sea.p",save_c="commits/save_creatures
     """
     nextid = 0
     try:
-        [x, y, lastid, fileNumber, chronon] = pickle.load(open(save_s, "rb" ))
+        [x, y, lastid, fileNumber, cellsize, chronon] = pickle.load(open(save_s, "rb" ))
         theSea = Sea(x, y, random)
-        theDisplay = SeaDisplay(theSea, fileNumber)
+        theDisplay = SeaDisplay(theSea, cellsize, fileNumber)
         nextid = lastid
     except FileNotFoundError:
         print("Restore file", save_s, "not found")
@@ -174,6 +177,9 @@ def generateSea(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
 def command_line():                
     # Parse options, then run simulation()
     parser = argparse.ArgumentParser()
+    parser.add_argument("--cellsize", type=int,
+                        help="width and height of cell, default 5, range 2-10",
+                        default=5)
     parser.add_argument("-c", "--chronons", type=int,
                         help="maximum number of chronons to calculate, default 999999",
                         default=999999)
@@ -212,21 +218,30 @@ def command_line():
                         help="-v chronon summary, -vv shark summary per chronon, -vvv fish summary per chronon -vvvv individual creature data per chronon",
                         default=False)
     parser.add_argument("-x", type=int,
-                        help="number of horizontal cells, default 160, range 20 - 320",
+                        help="number of horizontal cells, default 160, range 20 - calculated max based on --cellsize",
                         default=160)
     parser.add_argument("-y", type=int,
-                        help="number of vertical cells, default 48, range 10 - 160",
-                        default=48)
+                        help="number of vertical cells, default 48, range 10 - calculated max based on --cellsize",
+                        default=90)
     # get the arguments
     args = parser.parse_args()
     
-    # check the dimensions of the sea, 320x160 is the largest allowed.
-    if args.x < 20 or args.x > 320:
-        print("x must be in range 20 - 320")
+    # cellsize from 2 - 10 (could be larger, but let's start with this range).
+    if args.cellsize < 2 or args.cellsize > 10:
+        print("cellsize must be in range 2 - 10")
         quit(1)
 
-    if args.y < 10 or args.y > 160:
-        print("y must be in range 10 - 160")
+    # check the dimensions of the sea, 320x160 is the largest allowed.
+    # calculate maxX = xPixels // args.cellsize - ((xPixels//args.cellsize)%2)
+    maxX = xPixels // args.cellsize - ((xPixels//args.cellsize)%2)
+    if args.x < 20 or args.x > maxX:
+        print("x must be in range 20 - %d" % maxX)
+        quit(1)
+
+    # calculate maxY = yPixels // args.cellsize - ((yPixels//args.cellsize)%2)
+    maxY = yPixels // args.cellsize - ((yPixels//args.cellsize)%2)
+    if args.y < 10 or args.y > maxY:
+        print("y must be in range 10 - %d" % maxY)
         quit(2)
 
     # check the number of chronons to run.
@@ -267,7 +282,7 @@ def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0, verbos
     """
 
     # print first message
-    print("BEGIN -:- maxX: %d maxY: %d Positions: %d" % (aSea.getMaxX(), aSea.getMaxY(), aSea.getMaxX() * aSea.getMaxY()))
+    print("BEGIN -:- maxX: %d maxY: %d Positions: %d Cell Size: %d" % (aSea.getMaxX(), aSea.getMaxY(), aSea.getMaxX() * aSea.getMaxY(), seaView.getCellSize()))
 
     startTime = time.clock()
     tick = firstChronon
