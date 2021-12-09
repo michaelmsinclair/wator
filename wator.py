@@ -154,7 +154,7 @@ def generateSea(x,y,s,f,traditional,sharkspawn,sharkstarve,fishspawn, random):
             yS = random.randint(0,y-1)
             newShark = aSea.addCreature(xS,yS,Shark,traditional,sharkspawn, defaultParent, sharkstarve)
             if newShark != None:
-                sharkAge = random.randint(0, sharkspawn - 1)
+                sharkAge = random.randint(0, sharkspawn - 1) # assign a random age to smooth things out. maybe works, maybe doesn't add to the sim. time will tell.
                 newShark.setAge(sharkAge)
                 newShark.setTotalAge(sharkAge)
                 newShark.setStarve(random.randint(0, sharkstarve - 1))
