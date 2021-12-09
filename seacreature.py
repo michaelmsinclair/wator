@@ -145,8 +145,9 @@ class Shark(SeaCreature):
             nearPos = SeaPosition(n[0], n[1], self.sea)
             empty, occupied = nearPos.getAdjacent(self.traditional)
             if len(occupied) > 1:
-                prefered.append(n)
-
+                for o in occupied:
+                    if o != n and type(self.sea.getCell(o[0],o[1])) is Fish:
+                        prefered.append(n)
         if len(prefered) > 0:
             self.move(prefered)
         else:   
