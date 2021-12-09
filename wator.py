@@ -50,7 +50,7 @@ def wator():
 
         
     # run the simulation
-    run_simulation(aSea, aSeaView, args.chronons, args.Save, args.Commit, chronon, args.verbose)
+    run_simulation(aSea, aSeaView, args.chronons, args.Save, args.Commit, args.framerate, chronon, args.verbose)
 
 def restoreSea(random,save_s="commits/save_sea.p",save_c="commits/save_creatures.p"):
     """
@@ -192,6 +192,9 @@ def command_line():
     parser.add_argument("--fishspawn", type=int,
                         help="age that a fish spawns at, default 2, must be greater than 0",
                         default=2)
+    parser.add_argument("--framerate", type=float,
+                        help="minimum time between frames, expressed in fractions of seconds e.g. 1, 2, 1.0, 2.0, 0.5. default is 0.0 - no waiting",
+                        default=0.0)
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-R", "--Restore", action="store_true",
                         help="restore a saved sea",
@@ -212,7 +215,7 @@ def command_line():
                         help="chronons that a shark can live without eating, default 3, must be greater than 0",
                         default=3)
     parser.add_argument("-t", "--traditional", action="store_true",
-                        help="traditional search pattern",
+                        help="traditional search pattern is vertical and horizontoal. Default is traditional enhanced with diagonal searches.",
                         default=False)
     parser.add_argument("-v", "--verbose", action="count",
                         help="-v chronon summary, -vv shark summary per chronon, -vvv fish summary per chronon -vvvv individual creature data per chronon",
@@ -273,30 +276,36 @@ def command_line():
     return args    
     
 
-def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0, verbosity=0):
+def run_simulation(aSea, seaView, chronons, save, commit, framerate, firstChronon=0, verbosity=0):
     """
     aSea = sea containing all creatures.
     chronons = maximum number of chronons to run.
     save = if True save to file.
     commit = number of chronons between commits.
+    framerate = time between frames in seconds (fractions).
+    firstChronon = start point.
+    verbosity = amount/type of log messages.
     """
 
     # print first message
     print("BEGIN -:- maxX: %d maxY: %d Positions: %d Cell Size: %d" % (aSea.getMaxX(), aSea.getMaxY(), aSea.getMaxX() * aSea.getMaxY(), seaView.getCellSize()))
 
-    startTime = time.clock()
+    startTime = time.time()
     tick = firstChronon
     simulating  = True
     while simulating and tick < firstChronon+chronons and aSea.getSharks() != 0 and aSea.getFishes() != 0:  # in range(200):
-        before = time.clock()
+        before = time.time()
         theCreatures = aSea.creatures.copy()
         for c in theCreatures:
             c.turn()
         aSea.cleanCreatures()
-        elapsedTurn = time.clock() - before
-        before = time.clock()
-        simulating = seaView.showImage(aSea,True)
-        elapsedDisp = time.clock() - before
+        elapsedTurn = time.time() - before
+        before = time.time()
+        wait_time = framerate - elapsedTurn
+        if wait_time > 0:
+            time.sleep(wait_time)
+        simulating = seaView.showImage(aSea,save)
+        elapsedDisp = time.time() - before
         if save:
             if tick % commit == 0:
                 saveSea(aSea, seaView, tick)
@@ -328,7 +337,7 @@ def run_simulation(aSea, seaView, chronons, save, commit, firstChronon=0, verbos
             for creature in aSea.creatures:
                 print("Chronon: %06d %s" % (tick, creature))
 
-    endTime = time.clock()
+    endTime = time.time()
     # final commit
     if save:
         saveSea(aSea, seaView, tick)
