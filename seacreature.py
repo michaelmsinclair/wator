@@ -133,6 +133,24 @@ class Shark(SeaCreature):
     def __init__(self, sea, pos, traditional, spawnAge, starveAge, random, parent):
         SeaCreature.__init__(self, sea, pos, traditional, spawnAge, starveAge, random, parent)
         self.color = 0xFF0000
+
+    def hunt(self,nearby):
+        """
+        move towards fishes if they are two spaces away
+
+        nearby = list of all empty adjacent positions. 
+        """
+        prefered = []
+        for n in nearby:
+            nearPos = SeaPosition(n[0], n[1], self.sea)
+            empty, occupied = nearPos.getAdjacent(self.traditional)
+            if len(occupied) > 1:
+                prefered.append(n)
+
+        if len(prefered) > 0:
+            self.move(prefered)
+        else:   
+            self.move(nearby)        
         
     def eat(self,occupied):
         """
@@ -174,10 +192,10 @@ class Shark(SeaCreature):
                         self.spawn([(spawnX, spawnY)])
                     elif len(empty) > 0:
                         if not self.spawn(empty):
-                            self.move(empty)
+                            self.hunt(empty)
                 elif len(empty) > 0:
                     if not self.spawn(empty):
-                        self.move(empty)
+                        self.hunt(empty)
     
     def exportCreature(self):
         return [type(self)] + SeaCreature.exportCreature(self)
