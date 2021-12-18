@@ -137,4 +137,4 @@ class Sea(object):
         fishes = self.getFishes()
         positions = self.maxX * self.maxY
         empty = positions - sharks - fishes
-        return "Sharks: %d Fishes: %d Fishes per Shark: %d Empty: %d" % (sharks, fishes, round(fishes/sharks), empty)
+        return "Sharks: %d Fishes: %d Empty: %d" % (sharks, fishes, empty)
