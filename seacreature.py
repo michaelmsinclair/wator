@@ -224,7 +224,7 @@ class Fish(SeaCreature):
 
     def flee(self,nearby):
         """
-        move towards fishes if they are two spaces away
+        move away from nearby sharks
 
         nearby = list of all empty adjacent positions. 
         """
@@ -233,7 +233,7 @@ class Fish(SeaCreature):
         for n in nearby:
             nearPos = SeaPosition(n[0], n[1], self.sea)
             empty, occupied = nearPos.getAdjacent(self.traditional)
-            if len(occupied) > 1:
+            if len(occupied) > 0:
                 no_doom = True
                 for o in occupied:
                     if o != n and type(self.sea.getCell(o[0],o[1])) is Shark:
