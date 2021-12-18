@@ -345,6 +345,7 @@ def run_simulation(aSea, seaView, chronons, save, commit, framerate, firstChrono
     # print final message
     hours, remainingSeconds = divmod(endTime-startTime, 3600)
     minutes, seconds = divmod(remainingSeconds, 60)
+    print(aSea)
     print("END -:- Simulation complete after %d chronons. Ran for %d:%02d:%02d" % (tick, hours, minutes, seconds))
 
     # terminate display
