@@ -130,9 +130,12 @@ class Shark(SeaCreature):
     """
     Extend a regular sea creature to hunt and eat - be a shark
     """
+    COLOR_NORMAL = 0xFF0000
+    COLOR_HUNT = 0x660000
+
     def __init__(self, sea, pos, traditional, spawnAge, starveAge, random, parent):
         SeaCreature.__init__(self, sea, pos, traditional, spawnAge, starveAge, random, parent)
-        self.color = 0xFF0000
+        self.setColor(Shark.COLOR_NORMAL)
 
     def hunt(self,nearby):
         """
@@ -150,8 +153,10 @@ class Shark(SeaCreature):
                         prefered.append(n)
         if len(prefered) > 0:
             self.move(prefered)
+            self.setColor(Shark.COLOR_HUNT)
         else:   
             self.move(nearby)        
+            self.setColor(Shark.COLOR_NORMAL)
         
     def eat(self,occupied):
         """
@@ -186,6 +191,7 @@ class Shark(SeaCreature):
             if self.starve > self.starveAge:
                 self.died()
             else:
+                self.setColor(Shark.COLOR_NORMAL)
                 spawnX, spawnY = self.pos.getSeaPosition()
                 empty, occupied = self.pos.getAdjacent(self.traditional)
                 if len(occupied) > 0:
@@ -195,6 +201,7 @@ class Shark(SeaCreature):
                         if not self.spawn(empty):
                             self.hunt(empty)
                 elif len(empty) > 0:
+                    self.setColor(Shark.COLOR_HUNT)
                     if not self.spawn(empty):
                         self.hunt(empty)
     
@@ -208,9 +215,53 @@ class Fish(SeaCreature):
     """
     Extend sea creature, and identify it as a fish. 
     """
+    COLOR_NORMAL = 0x00ff00
+    COLOR_FLEEING = 0xffff00
+
     def __init__(self, sea, pos, traditional, spawnAge, starveAge, random, parent):
         SeaCreature.__init__(self, sea, pos, traditional, spawnAge, starveAge, random, parent)
-        self.color = 0x00ff00
+        self.setColor(Fish.COLOR_NORMAL)
+
+    def flee(self,nearby):
+        """
+        move away from nearby sharks
+
+        nearby = list of all empty adjacent positions. 
+        """
+        safespace = []
+        safe = True
+        for n in nearby:
+            nearPos = SeaPosition(n[0], n[1], self.sea)
+            empty, occupied = nearPos.getAdjacent(self.traditional)
+            if len(occupied) > 0:
+                no_doom = True
+                for o in occupied:
+                    if o != n and type(self.sea.getCell(o[0],o[1])) is Shark:
+                        no_doom = False
+                        safe = False
+                if no_doom:
+                    safespace.append(n)
+        if len(safespace) > 0:
+            if not safe:
+                self.setColor(Fish.COLOR_FLEEING)
+            else:
+                self.setColor(Fish.COLOR_NORMAL)
+            self.move(safespace)
+        else:   
+            self.move(nearby)        
+
+    def turn(self):
+        """
+        Let's make a fish a bit smarter, and teach them to flee.
+        """
+        if self.alive:
+            self.age += 1
+            self.totalAge += 1
+            empty, occupied = self.pos.getAdjacent(self.traditional)
+            self.setColor(Fish.COLOR_NORMAL)
+            if len(empty) > 0:
+                if not self.spawn(empty):
+                    self.flee(empty)
 
     def exportCreature(self):
         return [type(self)] + SeaCreature.exportCreature(self)

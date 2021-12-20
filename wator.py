@@ -209,8 +209,8 @@ def command_line():
                         help="seed with any value other than zero (0)",
                         default=0)
     parser.add_argument("--sharkspawn", type=int,
-                        help="age that a sharks spawns at, default 5, must be greater than 0",
-                        default=5)
+                        help="age that a sharks spawns at, default 11, must be greater than 0",
+                        default=7)
     parser.add_argument("--sharkstarve", type=int,
                         help="chronons that a shark can live without eating, default 3, must be greater than 0",
                         default=3)
@@ -345,6 +345,7 @@ def run_simulation(aSea, seaView, chronons, save, commit, framerate, firstChrono
     # print final message
     hours, remainingSeconds = divmod(endTime-startTime, 3600)
     minutes, seconds = divmod(remainingSeconds, 60)
+    print(aSea)
     print("END -:- Simulation complete after %d chronons. Ran for %d:%02d:%02d" % (tick, hours, minutes, seconds))
 
     # terminate display
